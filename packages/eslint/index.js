@@ -17,8 +17,13 @@ import tseslint from 'typescript-eslint';
 // The trailing lookahead rejects any word character, not just a hex digit, so an
 // anchor like href="#accounts" is not read as the color #acc. The upstream
 // version excluded only hex digits, and flagged it.
-const HEX_COLOR_REGEX_SOURCE =
-  '#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z_-])';
+const HEX_COLOR = '#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z_-])';
+
+// A plain string is only a color if the whole value is one. Matching a substring
+// flags prose that merely contains hex-looking digits — 'Freelance invoice #218',
+// an issue reference, a fragment. Template chunks keep the loose match, since
+// those really are built up out of style fragments.
+const HEX_COLOR_LITERAL = `^${HEX_COLOR}$`;
 
 const HEX_COLOR_MESSAGE =
   'Inline hexadecimal colors are not allowed. Use theme tokens (e.g. text-brand-500, bg-brand-50) instead.';
@@ -27,11 +32,11 @@ const noHexColorRules = {
   'no-restricted-syntax': [
     'error',
     {
-      selector: `Literal[value=/${HEX_COLOR_REGEX_SOURCE}/]`,
+      selector: `Literal[value=/${HEX_COLOR_LITERAL}/]`,
       message: HEX_COLOR_MESSAGE,
     },
     {
-      selector: `TemplateElement[value.raw=/${HEX_COLOR_REGEX_SOURCE}/]`,
+      selector: `TemplateElement[value.raw=/${HEX_COLOR}/]`,
       message: HEX_COLOR_MESSAGE,
     },
   ],

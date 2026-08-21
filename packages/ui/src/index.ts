@@ -31,6 +31,7 @@ export { Segmented, SegmentedOption, type SegmentedOptionProps } from './compone
 export { SummaryCard, type SummaryCardProps } from './components/SummaryCard';
 export { Table, Td, Th, Tr, type CellProps } from './components/Table';
 export { Tag, type TagProps } from './components/Tag';
+export { TrendChart, type TrendChartProps, type TrendPoint } from './components/TrendChart';
 export { EmptyState, ErrorState, Notice, Pagination, Skeleton } from './components/states';
 
 export { cn } from './lib/cn';

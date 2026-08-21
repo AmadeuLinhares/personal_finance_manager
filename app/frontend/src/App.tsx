@@ -1,31 +1,73 @@
-import { EmptyState, Kicker, Nav, NavBrand, NavLink } from '@pfm/ui';
+import { useState } from 'react';
+
+import { AppFooter } from './app/AppFooter';
+import { AppHeader } from './app/AppHeader';
+import { type Screen } from './app/screens';
+import { ProjectDialog } from './dialogs/ProjectDialog';
+import { ScheduleDialog } from './dialogs/ScheduleDialog';
+import { TransactionDialog } from './dialogs/TransactionDialog';
+import { Overview } from './screens/Overview';
+import { Planning } from './screens/Planning';
+import { Projects } from './screens/Projects';
+import { Reports } from './screens/Reports';
+import { Transactions } from './screens/Transactions';
+
+type OpenDialog = 'transaction' | 'schedule' | 'project' | null;
 
 /**
- * The app shell. The component reference lives in Storybook now
- * (`pnpm storybook`), so this stays a shell until the real screens land — it is
- * here to prove the design system renders in the app, nothing more.
+ * The app shell.
+ *
+ * Screens are switched from local state rather than a router — layout only, so
+ * there is nothing to deep-link to yet. A router is the first thing to add once
+ * the screens read from the API.
  */
 function App() {
+  const [screen, setScreen] = useState<Screen>('Overview');
+  const [dialog, setDialog] = useState<OpenDialog>(null);
+  const closeDialog = () => {
+    setDialog(null);
+  };
+
   return (
-    <>
-      <Nav>
-        <NavBrand>Folio</NavBrand>
-        <NavLink href='#accounts' aria-current='page'>
-          Accounts
-        </NavLink>
-        <NavLink href='#transactions'>Transactions</NavLink>
-        <NavLink href='#reports'>Reports</NavLink>
-        <NavLink href='#projects'>Projects</NavLink>
-      </Nav>
-      <main className='mx-auto max-w-[1100px] px-4 py-8'>
-        <Kicker>Personal Finance Manager</Kicker>
-        <h1 className='mt-1.5 mb-4 font-heading text-h1 font-semibold'>Accounts</h1>
-        <EmptyState
-          title='No screens built yet'
-          description='The API is on port 4000 and the design system is browsable with pnpm storybook.'
-        />
+    <div className='flex min-h-screen flex-col'>
+      <AppHeader
+        screen={screen}
+        onScreenChange={setScreen}
+        scope='August 2026 · CAD'
+        onNewTransaction={() => {
+          setDialog('transaction');
+        }}
+      />
+
+      <main className='mx-auto w-full max-w-[1240px] px-4 pt-6 pb-8'>
+        {screen === 'Overview' ? <Overview onGo={setScreen} /> : null}
+        {screen === 'Transactions' ? <Transactions /> : null}
+        {screen === 'Reports' ? <Reports /> : null}
+        {screen === 'Planning' ? (
+          <Planning
+            onSchedule={() => {
+              setDialog('schedule');
+            }}
+          />
+        ) : null}
+        {screen === 'Projects' ? (
+          <Projects
+            onNewProject={() => {
+              setDialog('project');
+            }}
+            onViewTransactions={() => {
+              setScreen('Transactions');
+            }}
+          />
+        ) : null}
       </main>
-    </>
+
+      <AppFooter />
+
+      <TransactionDialog open={dialog === 'transaction'} onClose={closeDialog} />
+      <ScheduleDialog open={dialog === 'schedule'} onClose={closeDialog} />
+      <ProjectDialog open={dialog === 'project'} onClose={closeDialog} />
+    </div>
   );
 }
 

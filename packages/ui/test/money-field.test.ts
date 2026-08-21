@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import assert from 'node:assert/strict';
 import { createElement as h } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { test } from 'vitest';
 
 import { Field, Input, type FieldControlProps } from '../src/components/Field.tsx';
@@ -19,8 +19,8 @@ interface Values {
 
 /** A money field wired exactly the way the README documents it. */
 function Harness({ onState }: { onState: (values: Values) => void }) {
-  const { register, watch } = useForm<Values>({ defaultValues: { amount: 0 } });
-  onState(watch());
+  const { register, control } = useForm<Values>({ defaultValues: { amount: 0 } });
+  onState({ amount: useWatch({ control, name: 'amount' }) });
   // children goes in the props object: FieldProps requires it, so the
   // createElement overload that takes children as a rest argument does not match.
   return h(Field, {
