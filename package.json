@@ -4,6 +4,16 @@
   "private": true,
   "packageManager": "pnpm@11.5.3",
   "engines": {
-    "node": ">=22"
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @pfm/backend dev",
+    "dev:web": "pnpm --filter @pfm/frontend dev",
+    "start:api": "pnpm --filter @pfm/backend start",
+    "build": "pnpm --filter @pfm/frontend build",
+    "lint": "pnpm --filter @pfm/frontend lint",
+    "test": "pnpm --filter @pfm/backend test",
+    "reset": "curl -s -X POST http://localhost:4000/api/dev/reset -H 'Content-Type: application/json' -d '{}'"
   }
 }
