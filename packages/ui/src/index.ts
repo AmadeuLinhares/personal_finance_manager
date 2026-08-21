@@ -14,7 +14,15 @@ export { Button, type ButtonProps } from './components/Button';
 export { Card, CardBody, CardKicker, CardMeta, CardTitle, type CardProps } from './components/Card';
 export { DateText, type DateTextProps } from './components/DateText';
 export { Dialog, Divider, type DialogProps } from './components/Dialog';
-export { Field, Input, Select, Textarea, type FieldProps } from './components/Field';
+export {
+  Field,
+  Input,
+  Select,
+  Textarea,
+  type FieldControlProps,
+  type FieldProps,
+  type InputProps,
+} from './components/Field';
 export { Kicker } from './components/Kicker';
 export { Money, type MoneyProps } from './components/Money';
 export { Nav, NavBrand, NavLink } from './components/Nav';
@@ -26,6 +34,19 @@ export { Tag, type TagProps } from './components/Tag';
 export { EmptyState, ErrorState, Notice, Pagination, Skeleton } from './components/states';
 
 export { cn } from './lib/cn';
+export { composeRefs } from './lib/composeRefs';
+export {
+  coerceMoneyDisplay,
+  formatMoneyInput,
+  isValueTransformMask,
+  maskDefinitions,
+  moneyRegisterOptions,
+  parseMoneyInput,
+  valueTransformMasks,
+  type CharacterMask,
+  type MaskName,
+  type ValueTransformMaskName,
+} from './lib/masks';
 export {
   formatDate,
   formatMonth,
