@@ -1,3 +1,11 @@
 packages:
   - "app/*"
   - "packages/*"
+
+allowBuilds:
+  unrs-resolver: set this to true or false
+
+# unrs-resolver ships prebuilt native bindings for eslint-import-resolver-typescript;
+# its install script is what links the right one for this platform.
+onlyBuiltDependencies:
+  - unrs-resolver

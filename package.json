@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.5.3",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.22.1"
   },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
@@ -12,8 +12,20 @@
     "dev:web": "pnpm --filter @pfm/frontend dev",
     "start:api": "pnpm --filter @pfm/backend start",
     "build": "pnpm --filter @pfm/frontend build",
-    "lint": "pnpm --filter @pfm/frontend lint",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "pnpm -r format",
+    "format:check": "pnpm -r format:check",
+    "type-check": "pnpm -r type-check",
     "test": "pnpm --filter @pfm/backend test",
-    "reset": "curl -s -X POST http://localhost:4000/api/dev/reset -H 'Content-Type: application/json' -d '{}'"
+    "reset": "curl -s -X POST http://localhost:4000/api/dev/reset -H 'Content-Type: application/json' -d '{}'",
+    "prepare": "husky",
+    "knip": "pnpm -r knip"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^21.2.2",
+    "commitlint": "^21.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0"
   }
 }
