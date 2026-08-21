@@ -1,28 +1,31 @@
-import css from "@eslint/css";
-import js from "@eslint/js";
-import json from "@eslint/json";
-import markdown from "@eslint/markdown";
-import { defineConfig, globalIgnores } from "eslint/config";
-import prettierConfig from "eslint-config-prettier";
-import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
-import importX from "eslint-plugin-import-x";
-import prettierPlugin from "eslint-plugin-prettier";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import unusedImports from "eslint-plugin-unused-imports";
-import globals from "globals";
-import tseslint from "typescript-eslint";
+import css from '@eslint/css';
+import js from '@eslint/js';
+import json from '@eslint/json';
+import markdown from '@eslint/markdown';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import prettierConfig from 'eslint-config-prettier';
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
+import importX from 'eslint-plugin-import-x';
+import prettierPlugin from 'eslint-plugin-prettier';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
+// The trailing lookahead rejects any word character, not just a hex digit, so an
+// anchor like href="#accounts" is not read as the color #acc. The upstream
+// version excluded only hex digits, and flagged it.
 const HEX_COLOR_REGEX_SOURCE =
-  "#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-fA-F])";
+  '#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9a-zA-Z_-])';
 
 const HEX_COLOR_MESSAGE =
-  "Inline hexadecimal colors are not allowed. Use theme tokens (e.g. text-brand-500, bg-brand-50) instead.";
+  'Inline hexadecimal colors are not allowed. Use theme tokens (e.g. text-brand-500, bg-brand-50) instead.';
 
 const noHexColorRules = {
-  "no-restricted-syntax": [
-    "error",
+  'no-restricted-syntax': [
+    'error',
     {
       selector: `Literal[value=/${HEX_COLOR_REGEX_SOURCE}/]`,
       message: HEX_COLOR_MESSAGE,
@@ -34,16 +37,10 @@ const noHexColorRules = {
   ],
 };
 
-const SCRIPT_FILES = ["**/*.{js,mjs,cjs,jsx,ts,tsx,mts,cts}"];
-const TS_FILES = ["**/*.{ts,tsx,mts,cts}"];
+const SCRIPT_FILES = ['**/*.{js,mjs,cjs,jsx,ts,tsx,mts,cts}'];
+const TS_FILES = ['**/*.{ts,tsx,mts,cts}'];
 
-const DEFAULT_IGNORES = [
-  "dist/**",
-  "build/**",
-  "coverage/**",
-  "node_modules/**",
-  "pnpm-lock.yaml",
-];
+const DEFAULT_IGNORES = ['dist/**', 'build/**', 'coverage/**', 'node_modules/**', 'pnpm-lock.yaml'];
 
 /**
  * Builds the shared flat config.
@@ -75,21 +72,21 @@ export function createConfig(options = {}) {
     prettier: withPrettier = true,
     // Not 'detect': eslint-plugin-react's version sniffing calls an API that
     // ESLint 10 removed, and crashes the whole run.
-    reactVersion = "19.0",
-    env = "browser",
+    reactVersion = '19.0',
+    env = 'browser',
   } = options;
 
   if (typeChecked && !tsconfigRootDir) {
     throw new Error(
-      "@pfm/eslint-config: type-aware linting needs `tsconfigRootDir`. " +
-        "Pass `createConfig({ tsconfigRootDir: import.meta.dirname })`, " +
-        "or opt out with `{ typeChecked: false }`.",
+      '@pfm/eslint-config: type-aware linting needs `tsconfigRootDir`. ' +
+        'Pass `createConfig({ tsconfigRootDir: import.meta.dirname })`, ' +
+        'or opt out with `{ typeChecked: false }`.',
     );
   }
 
   const envGlobals = {
-    ...(env === "browser" || env === "both" ? globals.browser : {}),
-    ...(env === "node" || env === "both" ? globals.node : {}),
+    ...(env === 'browser' || env === 'both' ? globals.browser : {}),
+    ...(env === 'node' || env === 'both' ? globals.node : {}),
   };
 
   return defineConfig([
@@ -100,8 +97,8 @@ export function createConfig(options = {}) {
       files: SCRIPT_FILES,
       extends: [js.configs.recommended],
       languageOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
+        ecmaVersion: 'latest',
+        sourceType: 'module',
         globals: envGlobals,
       },
     },
@@ -110,10 +107,7 @@ export function createConfig(options = {}) {
     {
       files: TS_FILES,
       extends: typeChecked
-        ? [
-            ...tseslint.configs.strictTypeChecked,
-            ...tseslint.configs.stylisticTypeChecked,
-          ]
+        ? [...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked]
         : [...tseslint.configs.strict, ...tseslint.configs.stylistic],
       ...(typeChecked
         ? {
@@ -126,14 +120,14 @@ export function createConfig(options = {}) {
           }
         : {}),
       rules: {
-        "@typescript-eslint/consistent-type-imports": [
-          "error",
-          { prefer: "type-imports", fixStyle: "inline-type-imports" },
+        '@typescript-eslint/consistent-type-imports': [
+          'error',
+          { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
         ],
         // unused-imports/no-unused-vars owns this below.
-        "@typescript-eslint/no-unused-vars": "off",
-        "@typescript-eslint/no-misused-promises": [
-          "error",
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-misused-promises': [
+          'error',
           { checksVoidReturn: { attributes: false } },
         ],
       },
@@ -147,65 +141,61 @@ export function createConfig(options = {}) {
             files: SCRIPT_FILES,
             extends: [
               react.configs.flat.recommended,
-              react.configs.flat["jsx-runtime"],
+              react.configs.flat['jsx-runtime'],
               reactHooks.configs.flat.recommended,
             ],
             settings: { react: { version: reactVersion } },
             rules: {
               // TS already checks props; propTypes are noise in a typed codebase.
-              "react/prop-types": "off",
+              'react/prop-types': 'off',
             },
           },
         ]
       : []),
 
-    ...(withReactRefresh
-      ? [{ files: SCRIPT_FILES, extends: [reactRefresh.configs.vite] }]
-      : []),
+    ...(withReactRefresh ? [{ files: SCRIPT_FILES, extends: [reactRefresh.configs.vite] }] : []),
 
     // Imports and unused code.
     {
       files: SCRIPT_FILES,
       plugins: {
-        "unused-imports": unusedImports,
-        "import-x": importX,
+        'unused-imports': unusedImports,
+        'import-x': importX,
       },
       settings: {
-        "import-x/resolver-next": [
-          createTypeScriptImportResolver({ alwaysTryTypes: true }),
-        ],
+        'import-x/resolver-next': [createTypeScriptImportResolver({ alwaysTryTypes: true })],
       },
       rules: {
-        "unused-imports/no-unused-imports": "error",
-        "unused-imports/no-unused-vars": [
-          "warn",
+        'unused-imports/no-unused-imports': 'error',
+        'unused-imports/no-unused-vars': [
+          'warn',
           {
-            vars: "all",
-            varsIgnorePattern: "^_",
-            args: "after-used",
-            argsIgnorePattern: "^_",
+            vars: 'all',
+            varsIgnorePattern: '^_',
+            args: 'after-used',
+            argsIgnorePattern: '^_',
           },
         ],
-        "import-x/order": [
-          "error",
+        'import-x/order': [
+          'error',
           {
             // Two blocks separated by a blank line:
             //   1) external libs (builtin + node_modules)
             //   2) project code (resolved via @/ or relative paths)
             // Type imports follow their source's natural block.
             groups: [
-              ["builtin", "external"],
-              ["internal", "parent", "sibling", "index", "object"],
+              ['builtin', 'external'],
+              ['internal', 'parent', 'sibling', 'index', 'object'],
             ],
-            pathGroups: [{ pattern: "@/**", group: "internal" }],
+            pathGroups: [{ pattern: '@/**', group: 'internal' }],
             pathGroupsExcludedImportTypes: [],
-            "newlines-between": "always",
-            alphabetize: { order: "asc", caseInsensitive: true },
+            'newlines-between': 'always',
+            alphabetize: { order: 'asc', caseInsensitive: true },
           },
         ],
-        "import-x/no-duplicates": ["error", { "prefer-inline": true }],
-        "import-x/no-cycle": "error",
-        "import-x/no-self-import": "error",
+        'import-x/no-duplicates': ['error', { 'prefer-inline': true }],
+        'import-x/no-cycle': 'error',
+        'import-x/no-self-import': 'error',
       },
     },
 
@@ -216,7 +206,7 @@ export function createConfig(options = {}) {
             ? [
                 {
                   files: noHexColorsAllow,
-                  rules: { "no-restricted-syntax": "off" },
+                  rules: { 'no-restricted-syntax': 'off' },
                 },
               ]
             : []),
@@ -225,40 +215,40 @@ export function createConfig(options = {}) {
 
     // Data and docs languages.
     {
-      files: ["**/*.json"],
+      files: ['**/*.json'],
       plugins: { json },
-      language: "json/json",
-      extends: ["json/recommended"],
+      language: 'json/json',
+      extends: ['json/recommended'],
     },
     {
       // tsconfig files are JSON with comments, whatever their extension says.
-      files: ["**/*.jsonc", ".vscode/*.json", "**/tsconfig*.json"],
+      files: ['**/*.jsonc', '.vscode/*.json', '**/tsconfig*.json'],
       plugins: { json },
-      language: "json/jsonc",
-      extends: ["json/recommended"],
+      language: 'json/jsonc',
+      extends: ['json/recommended'],
     },
     {
-      files: ["**/*.json5"],
+      files: ['**/*.json5'],
       plugins: { json },
-      language: "json/json5",
-      extends: ["json/recommended"],
+      language: 'json/json5',
+      extends: ['json/recommended'],
     },
     {
-      files: ["**/*.md"],
+      files: ['**/*.md'],
       plugins: { markdown },
-      language: "markdown/gfm",
-      extends: ["markdown/recommended"],
+      language: 'markdown/gfm',
+      extends: ['markdown/recommended'],
     },
     {
-      files: ["**/*.css"],
+      files: ['**/*.css'],
       plugins: { css },
-      language: "css/css",
-      extends: ["css/recommended"],
+      language: 'css/css',
+      extends: ['css/recommended'],
       rules: {
-        "css/use-baseline": "off",
-        "css/no-invalid-at-rules": "off",
+        'css/use-baseline': 'off',
+        'css/no-invalid-at-rules': 'off',
         // Custom properties declared in another file read as undefined here.
-        "css/no-invalid-properties": "off",
+        'css/no-invalid-properties': 'off',
       },
     },
 
@@ -267,12 +257,10 @@ export function createConfig(options = {}) {
       ? [
           prettierConfig,
           {
-            files: [
-              "**/*.{js,mjs,cjs,jsx,ts,tsx,mts,cts,css,json,jsonc,json5}",
-            ],
+            files: ['**/*.{js,mjs,cjs,jsx,ts,tsx,mts,cts,css,json,jsonc,json5}'],
             plugins: { prettier: prettierPlugin },
             rules: {
-              "prettier/prettier": "error",
+              'prettier/prettier': 'error',
             },
           },
         ]

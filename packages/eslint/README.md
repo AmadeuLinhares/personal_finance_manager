@@ -19,7 +19,7 @@ file at the root of one app.
 
 ```js
 // eslint.config.js
-import { createConfig } from "@pfm/eslint-config";
+import { createConfig } from '@pfm/eslint-config';
 
 export default createConfig({
   tsconfigRootDir: import.meta.dirname,
@@ -28,7 +28,7 @@ export default createConfig({
 
 ```js
 // .prettierrc.mjs
-export { default } from "@pfm/eslint-config/prettier";
+export { default } from '@pfm/eslint-config/prettier';
 ```
 
 `tsconfigRootDir` has to be passed by the consumer. Type-aware rules resolve tsconfigs

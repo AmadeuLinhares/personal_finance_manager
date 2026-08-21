@@ -3,6 +3,7 @@ dist/
 build/
 coverage/
 .turbo/
+storybook-static/
 *.log
 .DS_Store
 .env

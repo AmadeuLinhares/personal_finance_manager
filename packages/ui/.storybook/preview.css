@@ -1,0 +1,11 @@
+/*
+ * Storybook's own CSS entry. The app loads Tailwind the same way; this file
+ * exists so the canvas gets the design system without depending on the app.
+ *
+ * The font import comes first because @import has to precede every other rule.
+ * In the app the fonts are a <link> in the host page; here there is no host page.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;600&display=swap');
+@import 'tailwindcss';
+@import '../styles.css';

@@ -2,10 +2,9 @@ packages:
   - "app/*"
   - "packages/*"
 
+# Both ship prebuilt platform binaries, and their install script is what links
+# the right one: unrs-resolver for eslint-import-resolver-typescript, esbuild for
+# the Vite build Storybook runs.
 allowBuilds:
-  unrs-resolver: set this to true or false
-
-# unrs-resolver ships prebuilt native bindings for eslint-import-resolver-typescript;
-# its install script is what links the right one for this platform.
-onlyBuiltDependencies:
-  - unrs-resolver
+  esbuild: true
+  unrs-resolver: true

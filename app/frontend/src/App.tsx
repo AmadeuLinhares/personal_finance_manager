@@ -1,107 +1,30 @@
-import { useState } from 'react';
+import { EmptyState, Kicker, Nav, NavBrand, NavLink } from '@pfm/ui';
 
-import heroImg from './assets/hero.png';
-import reactLogo from './assets/react.svg';
-import viteLogo from './assets/vite.svg';
-import './App.css';
-
+/**
+ * The app shell. The component reference lives in Storybook now
+ * (`pnpm storybook`), so this stays a shell until the real screens land — it is
+ * here to prove the design system renders in the app, nothing more.
+ */
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <>
-      <section id='center'>
-        <div className='hero'>
-          <img src={heroImg} className='base' width='170' height='179' alt='' />
-          <img src={reactLogo} className='framework' alt='React logo' />
-          <img src={viteLogo} className='vite' alt='Vite logo' />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type='button'
-          className='counter'
-          onClick={() => {
-            setCount((count) => count + 1);
-          }}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className='ticks'></div>
-
-      <section id='next-steps'>
-        <div id='docs'>
-          <svg className='icon' role='presentation' aria-hidden='true'>
-            <use href='/icons.svg#documentation-icon'></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href='https://vite.dev/' target='_blank' rel='noreferrer'>
-                <img className='logo' src={viteLogo} alt='' />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href='https://react.dev/' target='_blank' rel='noreferrer'>
-                <img className='button-icon' src={reactLogo} alt='' />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id='social'>
-          <svg className='icon' role='presentation' aria-hidden='true'>
-            <use href='/icons.svg#social-icon'></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href='https://github.com/vitejs/vite' target='_blank' rel='noreferrer'>
-                <svg className='button-icon' role='presentation' aria-hidden='true'>
-                  <use href='/icons.svg#github-icon'></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href='https://chat.vite.dev/' target='_blank' rel='noreferrer'>
-                <svg className='button-icon' role='presentation' aria-hidden='true'>
-                  <use href='/icons.svg#discord-icon'></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href='https://x.com/vite_js' target='_blank' rel='noreferrer'>
-                <svg className='button-icon' role='presentation' aria-hidden='true'>
-                  <use href='/icons.svg#x-icon'></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href='https://bsky.app/profile/vite.dev' target='_blank' rel='noreferrer'>
-                <svg className='button-icon' role='presentation' aria-hidden='true'>
-                  <use href='/icons.svg#bluesky-icon'></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className='ticks'></div>
-      <section id='spacer'></section>
+      <Nav>
+        <NavBrand>Folio</NavBrand>
+        <NavLink href='#accounts' aria-current='page'>
+          Accounts
+        </NavLink>
+        <NavLink href='#transactions'>Transactions</NavLink>
+        <NavLink href='#reports'>Reports</NavLink>
+        <NavLink href='#projects'>Projects</NavLink>
+      </Nav>
+      <main className='mx-auto max-w-[1100px] px-4 py-8'>
+        <Kicker>Personal Finance Manager</Kicker>
+        <h1 className='mt-1.5 mb-4 font-heading text-h1 font-semibold'>Accounts</h1>
+        <EmptyState
+          title='No screens built yet'
+          description='The API is on port 4000 and the design system is browsable with pnpm storybook.'
+        />
+      </main>
     </>
   );
 }
