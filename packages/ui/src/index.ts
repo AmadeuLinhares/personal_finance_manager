@@ -12,6 +12,7 @@
 export { Bar, type BarProps } from './components/Bar';
 export { Button, type ButtonProps } from './components/Button';
 export { Card, CardBody, CardKicker, CardMeta, CardTitle, type CardProps } from './components/Card';
+export { DatePicker, type DatePickerProps } from './components/DatePicker';
 export { DateText, type DateTextProps } from './components/DateText';
 export { Dialog, Divider, type DialogProps } from './components/Dialog';
 export {
@@ -61,5 +62,8 @@ export {
   inputToMinor,
   isBefore,
   minorToInput,
+  parseIsoDate,
+  toIsoDate,
+  toIsoMonth,
   type Currency,
 } from './lib/format';

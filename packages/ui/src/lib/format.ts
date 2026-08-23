@@ -91,3 +91,29 @@ export function formatMonth(isoMonth: string): string {
 export function isBefore(a: string, b: string): boolean {
   return a < b;
 }
+
+/**
+ * `'2026-08-21'` → a local `Date` at midnight, or null when the string is not a
+ * calendar date.
+ *
+ * Split and rebuilt rather than `new Date(iso)`, which parses as UTC midnight and
+ * lands on the 20th anywhere west of Greenwich.
+ */
+export function parseIsoDate(iso: string | null | undefined): Date | null {
+  if (!iso) return null;
+  const [year, month, day] = iso.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+const pad = (value: number) => String(value).padStart(2, '0');
+
+/** A local `Date` back to `'YYYY-MM-DD'`, never touching UTC. */
+export function toIsoDate(date: Date): string {
+  return `${String(date.getFullYear())}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** A local `Date` to `'YYYY-MM'` — the form every month filter and report takes. */
+export function toIsoMonth(date: Date): string {
+  return `${String(date.getFullYear())}-${pad(date.getMonth() + 1)}`;
+}
