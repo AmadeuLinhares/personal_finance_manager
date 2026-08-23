@@ -1,7 +1,7 @@
-import { Button, cn } from '@pfm/ui';
+import { Button, VisuallyHidden, cn } from '@pfm/ui';
 import { Plus } from 'lucide-react';
 
-import { type Screen, SCREENS } from './screens';
+import { IMPLEMENTED_SCREENS, type Screen, SCREENS } from './screens';
 
 export interface AppHeaderProps {
   screen: Screen;
@@ -23,6 +23,7 @@ export function AppHeader({ screen, onScreenChange, scope, onNewTransaction }: A
         <nav className='flex flex-1 gap-6' aria-label='Primary'>
           {SCREENS.map((item) => {
             const current = item === screen;
+            const wired = IMPLEMENTED_SCREENS.includes(item);
             return (
               <button
                 key={item}
@@ -39,6 +40,14 @@ export function AppHeader({ screen, onScreenChange, scope, onNewTransaction }: A
                 )}
               >
                 {item}
+                {wired ? null : (
+                  <>
+                    <span className='ml-1 align-super text-[9px] text-ink/35' aria-hidden='true'>
+                      ●
+                    </span>
+                    <VisuallyHidden> (not implemented)</VisuallyHidden>
+                  </>
+                )}
               </button>
             );
           })}

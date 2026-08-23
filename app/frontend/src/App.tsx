@@ -1,8 +1,9 @@
+import { Notice, Tag } from '@pfm/ui';
 import { useState } from 'react';
 
 import { AppFooter } from './app/AppFooter';
 import { AppHeader } from './app/AppHeader';
-import { type Screen } from './app/screens';
+import { IMPLEMENTED_SCREENS, type Screen } from './app/screens';
 import { ProjectDialog } from './dialogs/ProjectDialog';
 import { ScheduleDialog } from './dialogs/ScheduleDialog';
 import { TransactionDialog } from './dialogs/TransactionDialog';
@@ -40,6 +41,16 @@ function App() {
       />
 
       <main className='mx-auto w-full max-w-[1240px] px-4 pt-6 pb-8'>
+        {IMPLEMENTED_SCREENS.includes(screen) ? null : (
+          <Notice variant='muted' className='mb-4'>
+            <Tag variant='outline' className='mr-2'>
+              not implemented
+            </Tag>
+            Layout only — this screen still reads from fixtures. Transactions is the one wired to
+            the API.
+          </Notice>
+        )}
+
         {screen === 'Overview' ? <Overview onGo={setScreen} /> : null}
         {screen === 'Transactions' ? <Transactions /> : null}
         {screen === 'Reports' ? <Reports /> : null}
