@@ -2,9 +2,28 @@ import { type InputHTMLAttributes, type ReactNode } from 'react';
 
 import { cn } from '../lib/cn';
 
-export function Segmented({ className, children }: { className?: string; children: ReactNode }) {
+export interface SegmentedProps {
+  className?: string;
+  children: ReactNode;
+  /**
+   * Names the set of choices. Without it a screen reader announces "All, radio"
+   * with nothing to say what is being chosen — pass this, or `labelledBy` when a
+   * visible label already exists.
+   */
+  label?: string;
+  /** Id of the visible label that names this group. */
+  labelledBy?: string;
+}
+
+export function Segmented({ className, children, label, labelledBy }: SegmentedProps) {
+  // Only a named group is worth announcing as a group.
+  const named = label !== undefined || labelledBy !== undefined;
+
   return (
     <div
+      role={named ? 'group' : undefined}
+      aria-label={label}
+      aria-labelledby={labelledBy}
       className={cn(
         'inline-flex self-start overflow-hidden rounded-md border border-divider',
         className,
@@ -24,7 +43,7 @@ export function SegmentedOption({ className, children, ...rest }: SegmentedOptio
   return (
     <label
       className={cn(
-        'px-2.6 inline-flex cursor-pointer items-center gap-1.5 py-1.5 text-ui-sm',
+        'inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-ui-sm',
         'border-l border-divider first:border-l-0',
         'has-checked:text-accent has-checked:shadow-[inset_0_0_0_1px_var(--color-accent)]',
         'not-has-checked:hover:bg-ink/7',

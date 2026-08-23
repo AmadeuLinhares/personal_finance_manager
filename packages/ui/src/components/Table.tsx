@@ -1,9 +1,28 @@
-import { type HTMLAttributes, type TdHTMLAttributes, type ThHTMLAttributes } from 'react';
+import {
+  type HTMLAttributes,
+  type ReactNode,
+  type TdHTMLAttributes,
+  type ThHTMLAttributes,
+} from 'react';
 
 import { cn } from '../lib/cn';
 
-export function Table({ className, ...rest }: HTMLAttributes<HTMLTableElement>) {
-  return <table className={cn('w-full border-collapse text-ui', className)} {...rest} />;
+export interface TableProps extends HTMLAttributes<HTMLTableElement> {
+  /**
+   * Names the table for assistive technology. Rendered as a visually hidden
+   * `<caption>`, which is the element screen readers look for — a heading above
+   * the table is not associated with it.
+   */
+  caption?: ReactNode;
+}
+
+export function Table({ caption, className, children, ...rest }: TableProps) {
+  return (
+    <table className={cn('w-full border-collapse text-ui', className)} {...rest}>
+      {caption ? <caption className='sr-only'>{caption}</caption> : null}
+      {children}
+    </table>
+  );
 }
 
 export interface CellProps {
@@ -16,11 +35,14 @@ export interface CellProps {
 
 export function Th({
   numeric = false,
+  /** Column header by default: it is what a `<thead>` cell almost always is. */
+  scope = 'col',
   className,
   ...rest
 }: ThHTMLAttributes<HTMLTableCellElement> & CellProps) {
   return (
     <th
+      scope={scope}
       className={cn(
         'border-b border-divider p-2 text-meta tracking-[0.08em] text-ink/60 uppercase',
         numeric ? 'text-right' : 'text-left',

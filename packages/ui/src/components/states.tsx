@@ -2,24 +2,41 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 import { Button } from './Button';
+import { VisuallyHidden } from './VisuallyHidden';
 import { cn } from '../lib/cn';
 
-/** Rows of shimmering rules, sized to the content they stand in for. */
-export function Skeleton({ lines = 3, className }: { lines?: number; className?: string }) {
+/**
+ * Rows of shimmering rules, sized to the content they stand in for.
+ *
+ * The bars are `aria-hidden` — they carry no information. Pass `label` so the
+ * wait is announced instead of being silence between a heading and a table.
+ */
+export function Skeleton({
+  lines = 3,
+  label,
+  className,
+}: {
+  lines?: number;
+  label?: string;
+  className?: string;
+}) {
   const widths = ['100%', '88%', '94%', '76%', '91%'];
   return (
-    <div className={cn('gap-2.2 flex flex-col', className)} aria-hidden='true'>
-      {Array.from({ length: lines }, (_, index) => (
-        <div
-          key={index}
-          className='h-3 animate-skeleton rounded-sm bg-neutral-300'
-          style={{
-            width: widths[index % widths.length],
-            animationDelay: `${String((index % 3) * 0.2)}s`,
-          }}
-        />
-      ))}
-    </div>
+    <>
+      {label === undefined ? null : <VisuallyHidden role='status'>{label}</VisuallyHidden>}
+      <div className={cn('flex flex-col gap-2', className)} aria-hidden='true'>
+        {Array.from({ length: lines }, (_, index) => (
+          <div
+            key={index}
+            className='h-3 animate-skeleton rounded-sm bg-neutral-300'
+            style={{
+              width: widths[index % widths.length],
+              animationDelay: `${String((index % 3) * 0.2)}s`,
+            }}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -37,7 +54,7 @@ export function EmptyState({
   return (
     <div className={cn('rounded-md border border-divider p-3 text-center', className)}>
       <div className='font-semibold font-heading text-[19px]'>{title}</div>
-      {description ? <p className='mb-2.2 mt-1 text-ui-sm text-ink/55'>{description}</p> : null}
+      {description ? <p className='mt-1 mb-2 text-ui-sm text-ink/55'>{description}</p> : null}
       {action}
     </div>
   );
@@ -55,8 +72,8 @@ export function ErrorState({
   className?: string;
 }) {
   return (
-    <div className={cn('rounded-md border border-divider p-3', className)}>
-      <div className='gap-2.2 flex items-start'>
+    <div role='alert' className={cn('rounded-md border border-divider p-3', className)}>
+      <div className='flex items-start gap-2'>
         <Info className='mt-0.5 size-4.5 flex-none text-accent-700' aria-hidden='true' />
         <div>
           <div className='font-semibold font-heading text-[17px]'>{title}</div>
@@ -90,8 +107,9 @@ export function Notice({
 }) {
   return (
     <div
+      role={variant === 'attention' ? 'alert' : undefined}
       className={cn(
-        'gap-2.2 px-2.6 py-2.2 flex items-center rounded-md border text-ui-sm',
+        'flex items-center gap-2 rounded-md border px-2.5 py-2 text-ui-sm',
         variant === 'attention' ? 'border-accent-400' : 'border-divider text-ink/55',
         className,
       )}

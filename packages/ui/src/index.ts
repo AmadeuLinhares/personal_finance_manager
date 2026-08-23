@@ -27,11 +27,17 @@ export { Kicker } from './components/Kicker';
 export { Money, type MoneyProps } from './components/Money';
 export { Nav, NavBrand, NavLink } from './components/Nav';
 export { Radio, type RadioProps } from './components/Radio';
-export { Segmented, SegmentedOption, type SegmentedOptionProps } from './components/Segmented';
+export {
+  Segmented,
+  SegmentedOption,
+  type SegmentedOptionProps,
+  type SegmentedProps,
+} from './components/Segmented';
 export { SummaryCard, type SummaryCardProps } from './components/SummaryCard';
-export { Table, Td, Th, Tr, type CellProps } from './components/Table';
+export { Table, Td, Th, Tr, type CellProps, type TableProps } from './components/Table';
 export { Tag, type TagProps } from './components/Tag';
 export { TrendChart, type TrendChartProps, type TrendPoint } from './components/TrendChart';
+export { VisuallyHidden } from './components/VisuallyHidden';
 export { EmptyState, ErrorState, Notice, Pagination, Skeleton } from './components/states';
 
 export { cn } from './lib/cn';
