@@ -1,9 +1,12 @@
 import {
   Button,
+  DatePicker,
   DateText,
   EmptyState,
+  ErrorState,
   Input,
   Money,
+  Notice,
   Pagination,
   Segmented,
   SegmentedOption,
@@ -14,80 +17,96 @@ import {
   Td,
   Th,
   Tr,
+  VisuallyHidden,
 } from '@pfm/ui';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
-import { ACCOUNTS, CURRENT_MONTH, TRANSACTIONS } from '../mock/data';
-import { accountById, inMonth, isTransfer, withRunningBalance } from '../mock/derive';
-
-type Kind = 'all' | 'inflow' | 'outflow';
-/** The API can be slow and can fail on demand, so the screen owes all three. */
-type TableState = 'data' | 'loading' | 'empty';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import type { Direction, TransactionStatus } from '@/http/api-types';
+import { useGetAccounts } from '@/http/queries/accounts/useGetAccounts';
+import {
+  useGetTransactions,
+  type TransactionFilters,
+} from '@/http/queries/transactions/useGetTransactions';
+import { monthRange } from '@/utils/dates';
 
 const PAGE_SIZE = 8;
 
+/** The one sort the running balance is allowed to use. */
+const SORT = '-date,-createdAt';
+
 export function Transactions() {
-  const [kind, setKind] = useState<Kind>('all');
+  const [direction, setDirection] = useState<Direction | 'all'>('all');
   const [accountId, setAccountId] = useState('all');
-  const [status, setStatus] = useState('all');
-  const [month, setMonth] = useState(CURRENT_MONTH);
+  const [status, setStatus] = useState<TransactionStatus | 'all'>('all');
+  const [month, setMonth] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [tableState, setTableState] = useState<TableState>('data');
 
-  const filtered = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    return TRANSACTIONS.filter((transaction) => {
-      if (kind === 'inflow' && transaction.amount <= 0) return false;
-      if (kind === 'outflow' && transaction.amount >= 0) return false;
-      if (accountId !== 'all' && transaction.accountId !== accountId) return false;
-      if (status !== 'all' && transaction.status !== status) return false;
-      if (month !== '' && !inMonth(transaction.date, month)) return false;
-      if (needle === '') return true;
-      const haystack = [
-        transaction.description,
-        transaction.category ?? 'uncategorised',
-        transaction.project ?? '',
-        accountById(transaction.accountId)?.name ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(needle);
-    });
-  }, [kind, accountId, status, month, search]);
+  // The search box drives a query param, so it waits for typing to settle.
+  const debouncedSearch = useDebouncedValue(search);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const slice = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
-  const rows = withRunningBalance(slice, accountId);
+  const accountsQuery = useGetAccounts({ includeBalances: false });
+
+  /**
+   * A running balance is only defined for one account in date order, so the
+   * column is requested exactly when the filter allows it. Asking anyway would
+   * be a 400, and hiding the rule from the user would be worse.
+   */
+  const singleAccount = accountId !== 'all';
+  const range = month === '' ? undefined : monthRange(month);
+
+  const filters: TransactionFilters = {
+    page,
+    pageSize: PAGE_SIZE,
+    sort: SORT,
+    include: 'account,category',
+    accountId: singleAccount ? accountId : undefined,
+    status: status === 'all' ? undefined : status,
+    direction: direction === 'all' ? undefined : direction,
+    from: range?.from,
+    to: range?.to,
+    q: debouncedSearch.trim() === '' ? undefined : debouncedSearch.trim(),
+    withRunningBalance: singleAccount ? true : undefined,
+  };
+
+  const { data, error, isPending, isError, isFetching, refetch } = useGetTransactions(filters, {
+    // Paging keeps the previous page on screen instead of collapsing the table
+    // into a skeleton — the rows are about to be replaced, not to disappear.
+    placeholderData: (previous) => previous,
+  });
+
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
+  const pageCount = Math.max(1, meta?.totalPages ?? 1);
+
+  const resetToFirstPage = () => {
+    setPage(1);
+  };
 
   const clearFilters = () => {
-    setKind('all');
+    setDirection('all');
     setAccountId('all');
     setStatus('all');
     setMonth('');
     setSearch('');
     setPage(1);
-    setTableState('data');
   };
-
-  const effectiveState: TableState =
-    tableState === 'data' && filtered.length === 0 ? 'empty' : tableState;
 
   return (
     <>
       <h2 className='font-heading text-h2 font-semibold'>Transactions</h2>
 
       <div className='my-4 flex flex-wrap items-center gap-3'>
-        <Segmented>
+        <Segmented label='Direction'>
           {(['all', 'inflow', 'outflow'] as const).map((option) => (
             <SegmentedOption
               key={option}
               name='txkind'
-              checked={kind === option}
+              checked={direction === option}
               onChange={() => {
-                setKind(option);
-                setPage(1);
+                setDirection(option);
+                resetToFirstPage();
               }}
             >
               {option === 'all' ? 'All' : option === 'inflow' ? 'Inflow' : 'Outflow'}
@@ -99,13 +118,14 @@ export function Transactions() {
           aria-label='Account'
           className='w-[190px]'
           value={accountId}
+          disabled={accountsQuery.isPending}
           onChange={(event) => {
             setAccountId(event.target.value);
-            setPage(1);
+            resetToFirstPage();
           }}
         >
           <option value='all'>All accounts</option>
-          {ACCOUNTS.map((account) => (
+          {(accountsQuery.data?.data ?? []).map((account) => (
             <option key={account.id} value={account.id}>
               {account.name}
             </option>
@@ -117,7 +137,8 @@ export function Transactions() {
           className='w-[130px]'
           value={status}
           onChange={(event) => {
-            setStatus(event.target.value);
+            setStatus(event.target.value as TransactionStatus | 'all');
+            resetToFirstPage();
           }}
         >
           <option value='all'>All statuses</option>
@@ -125,50 +146,49 @@ export function Transactions() {
           <option value='pending'>Pending</option>
         </Select>
 
-        <Input
+        <DatePicker
+          mode='month'
           aria-label='Month'
-          type='month'
-          className='w-[150px]'
+          className='w-[170px]'
+          placeholder='Any month'
           value={month}
-          onChange={(event) => {
-            setMonth(event.target.value);
+          onChange={(next) => {
+            setMonth(next ?? '');
+            resetToFirstPage();
           }}
         />
-
-        <div className='flex-1' />
 
         <Input
           aria-label='Search transactions'
           type='search'
-          className='w-[300px]'
-          placeholder='Search description, category, project'
+          className='ml-auto w-[300px]'
+          placeholder='Search description, merchant, notes'
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
-            setPage(1);
+            resetToFirstPage();
           }}
         />
-
-        {/* Layout-only stand-in for what ?__latency= and ?__error= will drive. */}
-        <Segmented className='ml-auto'>
-          {(['data', 'loading', 'empty'] as const).map((option) => (
-            <SegmentedOption
-              key={option}
-              name='tablestate'
-              checked={tableState === option}
-              onChange={() => {
-                setTableState(option);
-              }}
-            >
-              {option}
-            </SegmentedOption>
-          ))}
-        </Segmented>
       </div>
 
-      {effectiveState === 'loading' ? (
-        <Skeleton lines={8} />
-      ) : effectiveState === 'empty' ? (
+      {accountsQuery.isError ? (
+        <Notice className='mb-3'>
+          Account names are unavailable ({accountsQuery.error.data.code}) — the ledger below is
+          still correct.
+        </Notice>
+      ) : null}
+
+      {isPending ? (
+        <Skeleton lines={8} label='Loading transactions…' />
+      ) : isError ? (
+        <ErrorState
+          title={`Could not load transactions — ${error.data.code}`}
+          description={error.data.message}
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      ) : rows.length === 0 ? (
         <EmptyState
           className='py-8'
           title='No transactions match'
@@ -181,8 +201,8 @@ export function Transactions() {
         />
       ) : (
         <>
-          <div className='overflow-x-auto'>
-            <Table>
+          <div className='overflow-x-auto' aria-busy={isFetching}>
+            <Table caption='Transactions, newest first'>
               <thead>
                 <tr>
                   <Th>Date</Th>
@@ -190,53 +210,76 @@ export function Transactions() {
                   <Th>Account</Th>
                   <Th>Category</Th>
                   <Th numeric>Amount</Th>
-                  <Th numeric>Running balance</Th>
+                  <Th numeric>
+                    Running balance
+                    {singleAccount ? null : (
+                      <VisuallyHidden>
+                        {' '}
+                        — unavailable while several accounts are shown
+                      </VisuallyHidden>
+                    )}
+                  </Th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ transaction, running }) => (
+                {rows.map((transaction) => (
                   <Tr key={transaction.id}>
                     <Td numeric className='text-left'>
                       <DateText value={transaction.date} />
                     </Td>
                     <Td>
                       {transaction.description}
-                      {transaction.project === undefined ? null : (
-                        <Tag variant='outline' className='ml-1.5'>
-                          {transaction.project}
-                        </Tag>
-                      )}
                       {transaction.status === 'pending' ? (
                         <Tag variant='outline' className='ml-1.5'>
                           pending
                         </Tag>
                       ) : null}
-                      {isTransfer(transaction) ? (
+                      {transaction.transferId === null ? null : (
                         <Tag variant='outline' className='ml-1.5'>
                           transfer
                         </Tag>
-                      ) : null}
+                      )}
                     </Td>
                     <Td className='whitespace-nowrap text-ink/55'>
-                      {accountById(transaction.accountId)?.name}
+                      {transaction.account?.name ?? transaction.accountId}
                     </Td>
                     <Td>
-                      {transaction.category === null ? (
-                        <Tag variant='outline'>Uncategorised</Tag>
+                      {transaction.category ? (
+                        <Tag variant='neutral'>{transaction.category.name}</Tag>
                       ) : (
-                        <Tag variant={transaction.category === 'Transfer' ? 'outline' : 'neutral'}>
-                          {transaction.category}
-                        </Tag>
+                        <Tag variant='outline'>Uncategorised</Tag>
                       )}
                     </Td>
                     <Td numeric>
-                      <Money minorUnits={transaction.amount} signed />
+                      <Money
+                        minorUnits={transaction.amount}
+                        currency={transaction.currency === 'USD' ? 'USD' : 'CAD'}
+                        signed
+                      />
                     </Td>
                     <Td numeric className='text-ink/55'>
-                      {running === null ? (
-                        <span title='An unsettled row has no defensible total'>null</span>
+                      {!singleAccount ? (
+                        <>
+                          <span
+                            aria-hidden='true'
+                            title='A running balance across several accounts has no meaning — pick one account'
+                          >
+                            —
+                          </span>
+                          <VisuallyHidden>not available</VisuallyHidden>
+                        </>
+                      ) : transaction.runningBalance === null ||
+                        transaction.runningBalance === undefined ? (
+                        <>
+                          <span aria-hidden='true' title='An unsettled row has no defensible total'>
+                            null
+                          </span>
+                          <VisuallyHidden>
+                            no running balance: this row has not settled
+                          </VisuallyHidden>
+                        </>
                       ) : (
-                        <Money minorUnits={running} colorInflow={false} />
+                        <Money minorUnits={transaction.runningBalance} colorInflow={false} />
                       )}
                     </Td>
                   </Tr>
@@ -247,13 +290,19 @@ export function Transactions() {
 
           <Pagination
             className='mt-3'
-            page={current}
+            page={meta?.page ?? page}
             pageCount={pageCount}
             onPageChange={setPage}
             summary={
-              accountId === 'all'
-                ? `Showing ${String(slice.length)} of ${String(filtered.length)} · running balance needs one account`
-                : `Showing ${String(slice.length)} of ${String(filtered.length)} · running balance over the whole ledger`
+              <span role='status'>
+                {`Showing ${String(rows.length)} of ${String(meta?.total ?? rows.length)}${
+                  isFetching ? ' · updating…' : ''
+                } · ${
+                  singleAccount
+                    ? 'running balance over the whole ledger'
+                    : 'running balance needs one account'
+                }`}
+              </span>
             }
           />
         </>

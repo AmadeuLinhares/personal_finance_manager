@@ -450,17 +450,3 @@ export const PROJECTS: Project[] = [
     ],
   },
 ];
-
-export const CATEGORIES = [
-  'Groceries',
-  'Dining',
-  'Housing',
-  'Utilities',
-  'Transport',
-  'Travel',
-  'Health',
-  'Home',
-  'Shopping',
-  'Income',
-  'Other',
-];

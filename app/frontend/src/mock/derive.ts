@@ -22,7 +22,7 @@ export function available(account: Account): number {
   return account.posted + account.pending;
 }
 
-export function accountById(id: string): Account | undefined {
+function accountById(id: string): Account | undefined {
   return ACCOUNTS.find((account) => account.id === id);
 }
 
@@ -37,11 +37,11 @@ export function totalsFor(currency: Currency) {
 }
 
 /** A transfer is two transactions sharing a transferId — reports drop both legs. */
-export function isTransfer(transaction: Transaction): boolean {
+function isTransfer(transaction: Transaction): boolean {
   return transaction.transferId !== undefined;
 }
 
-export function inMonth(isoDate: string, isoMonth: string): boolean {
+function inMonth(isoDate: string, isoMonth: string): boolean {
   return isoDate.startsWith(isoMonth);
 }
 
@@ -97,24 +97,6 @@ export function monthlyExpenses(isoMonth: string, currency: Currency = 'CAD') {
   }).length;
 
   return { categories, outflow, inflow, net: inflow - outflow, excludedTransfers, otherCurrencies };
-}
-
-/** Running balance needs exactly one account and a date sort — an API rule. */
-export function withRunningBalance(transactions: Transaction[], accountId: string) {
-  if (accountId === 'all') {
-    return transactions.map((transaction) => ({ transaction, running: null }));
-  }
-  const account = accountById(accountId);
-  let running = account ? available(account) : 0;
-  return transactions.map((transaction) => {
-    if (transaction.status === 'pending') {
-      // An unsettled row has no defensible total.
-      return { transaction, running: null };
-    }
-    const row = { transaction, running };
-    running -= transaction.amount;
-    return row;
-  });
 }
 
 const MONTH_LABELS = [

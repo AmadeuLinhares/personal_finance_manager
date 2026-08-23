@@ -1,5 +1,6 @@
 import {
   Button,
+  DatePicker,
   Dialog,
   Field,
   Input,
@@ -8,24 +9,42 @@ import {
   SegmentedOption,
   Select,
   moneyRegisterOptions,
+  toIsoDate,
 } from '@pfm/ui';
-import { useForm, useWatch } from 'react-hook-form';
+import { useEffect, useId, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 
-import { ACCOUNTS, CATEGORIES, TODAY } from '../mock/data';
+import type { FetchError } from '@/http/fetch/fetch';
+import { useCreateTransaction } from '@/http/mutations/transactions/useCreateTransaction';
+import { useCreateTransfer } from '@/http/mutations/transfers/useCreateTransfer';
+import { useGetAccounts } from '@/http/queries/accounts/useGetAccounts';
+import { useGetCategories } from '@/http/queries/categories/useGetCategories';
+import { applyApiErrorToForm } from '@/utils/formErrors';
 
 type Kind = 'expense' | 'income' | 'transfer';
 
 interface TransactionForm {
   kind: Kind;
   description: string;
-  /** Integer minor units. The sign comes from `kind`, not from this field. */
+  /** Positive integer minor units. The sign comes from `kind`, not this field. */
   amount: number;
   date: string;
   accountId: string;
   toAccountId: string;
-  category: string;
+  categoryId: string;
   status: 'posted' | 'pending';
 }
+
+/** The fields a 422's `details[]` can be pinned to. */
+const FORM_FIELDS = [
+  'description',
+  'amount',
+  'date',
+  'accountId',
+  'toAccountId',
+  'categoryId',
+  'status',
+] as const;
 
 export interface TransactionDialogProps {
   open: boolean;
@@ -33,21 +52,25 @@ export interface TransactionDialogProps {
 }
 
 export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
+  const [formError, setFormError] = useState<string | null>(null);
+  const kindLabelId = useId();
+
   const {
     register,
     handleSubmit,
     control,
     reset,
+    setError,
     formState: { errors },
   } = useForm<TransactionForm>({
     defaultValues: {
       kind: 'expense',
       description: '',
       amount: 0,
-      date: TODAY,
-      accountId: 'acc_chequing',
-      toAccountId: 'acc_savings',
-      category: 'Groceries',
+      date: toIsoDate(new Date()),
+      accountId: '',
+      toAccountId: '',
+      categoryId: '',
       status: 'posted',
     },
   });
@@ -58,14 +81,86 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
   const accountId = useWatch({ control, name: 'accountId' });
   const toAccountId = useWatch({ control, name: 'toAccountId' });
   const isTransfer = kind === 'transfer';
-  const from = ACCOUNTS.find((account) => account.id === accountId);
-  const to = ACCOUNTS.find((account) => account.id === toAccountId);
+
+  const accountsQuery = useGetAccounts({ includeBalances: false });
+  // Only the categories that match the segmented control — an expense form has no
+  // business offering "Salary".
+  const categoriesQuery = useGetCategories({ kind: kind === 'income' ? 'income' : 'expense' });
+
+  const accounts = accountsQuery.data?.data ?? [];
+  const categories = categoriesQuery.data?.data ?? [];
+  const firstAccountId = accounts[0]?.id ?? '';
+  const secondAccountId = accounts[1]?.id ?? firstAccountId;
+
+  const createTransaction = useCreateTransaction();
+  const createTransfer = useCreateTransfer();
+  const isSaving = createTransaction.isPending || createTransfer.isPending;
+
+  /**
+   * The accounts arrive after mount, so the defaults cannot come from `useForm`.
+   * Both deps are ids: they only change when the account list really changes, not
+   * on every refetch, so typing is never wiped out from under the user.
+   */
+  useEffect(() => {
+    if (!open || firstAccountId === '') return;
+    reset({
+      kind: 'expense',
+      description: '',
+      amount: 0,
+      date: toIsoDate(new Date()),
+      accountId: firstAccountId,
+      toAccountId: secondAccountId,
+      categoryId: '',
+      status: 'posted',
+    });
+  }, [open, firstAccountId, secondAccountId, reset]);
+
+  const from = accounts.find((account) => account.id === accountId);
+  const to = accounts.find((account) => account.id === toAccountId);
   /** Cross-currency transfers are refused rather than guessed — no FX rates exist. */
   const currencyMismatch = isTransfer && from && to && from.currency !== to.currency;
 
   const close = () => {
     reset();
+    setFormError(null);
     onClose();
+  };
+
+  const onSubmit = (values: TransactionForm) => {
+    setFormError(null);
+
+    const onError = (error: FetchError) => {
+      setFormError(applyApiErrorToForm(error, setError, FORM_FIELDS));
+    };
+
+    if (values.kind === 'transfer') {
+      // A positive magnitude: the server derives each leg's sign.
+      createTransfer.mutate(
+        {
+          fromAccountId: values.accountId,
+          toAccountId: values.toAccountId,
+          amount: values.amount,
+          date: values.date,
+          description: values.description,
+          status: values.status,
+        },
+        { onSuccess: close, onError },
+      );
+      return;
+    }
+
+    createTransaction.mutate(
+      {
+        accountId: values.accountId,
+        date: values.date,
+        // Signed at the edge: an expense leaves the account, income enters it.
+        amount: values.kind === 'expense' ? -values.amount : values.amount,
+        description: values.description,
+        categoryId: values.categoryId === '' ? null : values.categoryId,
+        status: values.status,
+      },
+      { onSuccess: close, onError },
+    );
   };
 
   return (
@@ -76,25 +171,27 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
       className='w-[min(520px,100%)]'
       actions={
         <>
-          <Button variant='ghost' onClick={close}>
+          <Button variant='ghost' onClick={close} disabled={isSaving}>
             Cancel
           </Button>
           <Button
             variant='primary'
-            disabled={currencyMismatch === true}
+            disabled={currencyMismatch === true || isSaving || accountsQuery.isPending}
             onClick={() => {
-              void handleSubmit(close)();
+              void handleSubmit(onSubmit)();
             }}
           >
-            Save
+            {isSaving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }
     >
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div className='sm:col-span-2'>
-          <span className='mb-1.5 block text-label text-ink/70'>Kind</span>
-          <Segmented>
+          <span id={kindLabelId} className='mb-1.5 block text-label text-ink/70'>
+            Kind
+          </span>
+          <Segmented labelledBy={kindLabelId}>
             {(['expense', 'income', 'transfer'] as const).map((option) => (
               <SegmentedOption key={option} value={option} {...register('kind')}>
                 {option === 'expense' ? 'Expense' : option === 'income' ? 'Income' : 'Transfer'}
@@ -128,20 +225,37 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
               {...field}
               {...register('amount', {
                 ...moneyRegisterOptions,
-                min: { value: 1, message: 'VALIDATION_ERROR — amount cannot be zero' },
+                // The field is a magnitude — the segmented control carries the direction.
+                min: { value: 1, message: 'VALIDATION_ERROR — amount must be a positive value' },
               })}
             />
           )}
         </Field>
 
         <Field label='Date' error={errors.date?.message}>
-          {(field) => <Input type='date' {...field} {...register('date')} />}
+          {(field) => (
+            <Controller
+              control={control}
+              name='date'
+              rules={{ required: 'VALIDATION_ERROR — date is required' }}
+              render={({ field: { value, onChange, onBlur, ref } }) => (
+                <DatePicker
+                  ref={ref}
+                  portal={false}
+                  value={value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  {...field}
+                />
+              )}
+            />
+          )}
         </Field>
 
-        <Field label={isTransfer ? 'From account' : 'Account'}>
+        <Field label={isTransfer ? 'From account' : 'Account'} error={errors.accountId?.message}>
           {(field) => (
-            <Select {...field} {...register('accountId')}>
-              {ACCOUNTS.map((account) => (
+            <Select {...field} {...register('accountId')} disabled={accountsQuery.isPending}>
+              {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.name} · {account.currency}
                 </option>
@@ -151,10 +265,10 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
         </Field>
 
         {isTransfer ? (
-          <Field label='To account'>
+          <Field label='To account' error={errors.toAccountId?.message}>
             {(field) => (
-              <Select {...field} {...register('toAccountId')}>
-                {ACCOUNTS.map((account) => (
+              <Select {...field} {...register('toAccountId')} disabled={accountsQuery.isPending}>
+                {accounts.map((account) => (
                   <option key={account.id} value={account.id}>
                     {account.name} · {account.currency}
                   </option>
@@ -163,11 +277,14 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
             )}
           </Field>
         ) : (
-          <Field label='Category'>
+          <Field label='Category' error={errors.categoryId?.message}>
             {(field) => (
-              <Select {...field} {...register('category')}>
-                {CATEGORIES.map((category) => (
-                  <option key={category}>{category}</option>
+              <Select {...field} {...register('categoryId')} disabled={categoriesQuery.isPending}>
+                <option value=''>Uncategorised</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
                 ))}
               </Select>
             )}
@@ -183,6 +300,15 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
           )}
         </Field>
       </div>
+
+      {accountsQuery.isError ? (
+        <Notice className='mt-3'>
+          {accountsQuery.error.data.code} — accounts could not be loaded, so there is nothing to
+          post to.
+        </Notice>
+      ) : null}
+
+      {formError === null ? null : <Notice className='mt-3'>{formError}</Notice>}
 
       {currencyMismatch === true ? (
         <Notice className='mt-3'>
