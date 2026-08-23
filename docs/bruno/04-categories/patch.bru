@@ -1,0 +1,21 @@
+meta {
+  name: Update category
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/categories/{{createdCategoryId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "monthlyBudget": 12000
+  }
+}
+
+assert {
+  res.status: eq 200
+}

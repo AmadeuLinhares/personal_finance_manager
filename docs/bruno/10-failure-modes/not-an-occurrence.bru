@@ -1,0 +1,27 @@
+meta {
+  name: 422 NOT_AN_OCCURRENCE
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/scheduled-items/sch_rent/post
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "date": "2026-09-17"
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+docs {
+  Rent is monthly on its `startDate`'s day of month, so the 17th is not a date
+  the rule generates. The error lists nearby valid dates instead of just saying
+  no.
+}

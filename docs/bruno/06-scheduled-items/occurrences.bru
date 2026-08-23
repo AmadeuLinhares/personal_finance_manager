@@ -1,0 +1,37 @@
+meta {
+  name: Upcoming occurrences
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/scheduled-items/occurrences?from={{today}}&to={{horizon}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  from: {{today}}
+  to: {{horizon}}
+  ~status: overdue
+  ~accountId: acc_chequing
+  ~projectId: proj_france
+  ~kind: bill
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  The flat upcoming list: every rule expanded into dates, each annotated.
+  
+  | status | |
+  |---|---|
+  | `posted` | a real transaction exists for it |
+  | `skipped` | explicitly dismissed for that date |
+  | `overdue` | due on or before today, neither posted nor skipped |
+  | `scheduled` | still in the future |
+  
+  Defaults: `from` = today, `to` = `from` + 3 months.
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Project summary
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/projects/proj_remodel/summary
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  `spent` is `outflow - inflow` (compare that to `budget`), `committed` is the
+  future scheduled items linked to the project, and `projectedTotal` is the two
+  together — which is how a project sits at 93% of budget and still ends up over
+  once commitments land. Also returns `byCategory`, `byMonth` and `upcoming`.
+}

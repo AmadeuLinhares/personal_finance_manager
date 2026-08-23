@@ -1,0 +1,29 @@
+meta {
+  name: List projects
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/projects
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~includeSummary: false
+  ~status: active,planned
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  User story 5. A project is a *label with a budget*, not a container: a
+  transaction belongs to one account and optionally one project, so "spent on
+  the remodel" and "spent from chequing" stay independent questions.
+  
+  The seed has three: `proj_remodel` (active kitchen remodel), `proj_france`
+  (planned, deposits already paid) and `proj_office` (completed).
+}

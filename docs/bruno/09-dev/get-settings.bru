@@ -1,0 +1,15 @@
+meta {
+  name: Get chaos settings
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/dev/settings
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Bulk update
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/transactions/bulk-update
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "ids": ["{{transactionId}}", "txn_does_not_exist"],
+    "patch": {
+      "categoryId": "cat_groceries",
+      "tags": ["reviewed"]
+    }
+  }
+}
+
+docs {
+  `patch` accepts `categoryId`, `projectId`, `status`, `tags`. Unknown ids come
+  back in `errors[]` with a `207` — as written, one hit and one miss.
+}

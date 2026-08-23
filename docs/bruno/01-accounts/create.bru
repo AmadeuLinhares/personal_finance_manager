@@ -1,0 +1,38 @@
+meta {
+  name: Create account
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/accounts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Joint Chequing",
+    "type": "checking",
+    "currency": "CAD",
+    "institution": "Banque Nationale",
+    "openingBalance": 125000,
+    "openedAt": "2025-01-01",
+    "creditLimit": null,
+    "color": "#2563eb"
+  }
+}
+
+vars:post-response {
+  createdAccountId: res.body.data.id
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  `openingBalance` is minor units: 125000 = $1,250.00. `currency` is immutable
+  after creation — changing it would silently reinterpret every historical
+  amount on the account, so PATCH rejects it.
+}

@@ -1,0 +1,50 @@
+meta {
+  name: Bulk create (partial success)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/transactions/bulk
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "transactions": [
+      {
+        "accountId": "acc_chequing",
+        "date": "{{today}}",
+        "amount": -1250,
+        "description": "Coffee",
+        "categoryId": "cat_coffee"
+      },
+      {
+        "accountId": "acc_chequing",
+        "date": "{{today}}",
+        "amount": -12.5,
+        "description": "This row fails: amount is not minor units"
+      },
+      {
+        "accountId": "acc_cash",
+        "date": "{{today}}",
+        "amount": 2000,
+        "description": "Cash found in a coat"
+      }
+    ]
+  }
+}
+
+docs {
+  Max 1000 rows. **Partial success is the point:**
+  
+  | status | |
+  |---|---|
+  | `201` | all created |
+  | `207` | some created — `errors[]` carries the index and reason for each failure |
+  | `422` | none created |
+  
+  As written this returns `207`: rows 0 and 2 are created, row 1 comes back in
+  `errors[]` with its index. A client that ignores `207` silently loses data.
+}

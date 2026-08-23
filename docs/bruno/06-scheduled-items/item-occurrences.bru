@@ -1,0 +1,27 @@
+meta {
+  name: Occurrences of one item
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/scheduled-items/sch_water/occurrences?from={{today}}&to=2027-06-30
+  body: none
+  auth: inherit
+}
+
+params:query {
+  from: {{today}}
+  to: 2027-06-30
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  `sch_water` is the quarterly bill anchored to the 31st. Monthly-family items
+  stay anchored to their day of month and **clamp** in short months: due on the
+  31st it falls on Feb 28, then back on Mar 31 — it never drifts to the 28th
+  permanently.
+}

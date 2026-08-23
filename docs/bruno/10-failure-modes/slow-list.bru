@@ -1,0 +1,20 @@
+meta {
+  name: Slow list (2s)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/transactions?__latency=2000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  __latency: 2000
+}
+
+docs {
+  Per-request latency, which is usually what you want while building one screen.
+  The header form is equivalent: `x-simulate-latency: 2000`.
+}

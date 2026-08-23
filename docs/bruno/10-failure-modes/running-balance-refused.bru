@@ -1,0 +1,26 @@
+meta {
+  name: 400 (running balance without one account)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/transactions?withRunningBalance=true&sort=-amount
+  body: none
+  auth: inherit
+}
+
+params:query {
+  withRunningBalance: true
+  sort: -amount
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  A running balance needs exactly one `accountId` and a date sort. Across several
+  accounts it has no meaning; out of date order it is not a balance. Compare with
+  `02-transactions/List with running balance`.
+}

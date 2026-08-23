@@ -1,0 +1,20 @@
+meta {
+  name: API index
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Machine-readable index of every endpoint. The cheapest way to check the server
+  is up and to see what changed if the API is extended.
+}

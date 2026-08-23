@@ -1,0 +1,25 @@
+meta {
+  name: Balance as of a date
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/accounts/acc_visa/balance?asOf={{monthStart}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  asOf: {{monthStart}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  User story 2. Balances are always derived from the ledger, never stored, so any
+  `asOf` is as cheap as today. `acc_visa` is the credit card: negative balance,
+  positive `creditLimit`, `availableCredit = creditLimit + balance`.
+}

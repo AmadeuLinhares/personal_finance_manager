@@ -1,0 +1,40 @@
+meta {
+  name: Create transaction
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/transactions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "accountId": "acc_chequing",
+    "date": "{{today}}",
+    "amount": -4599,
+    "description": "Metro Plus",
+    "merchant": "Metro Plus",
+    "categoryId": "cat_groceries",
+    "projectId": null,
+    "status": "posted",
+    "notes": null,
+    "tags": []
+  }
+}
+
+vars:post-response {
+  createdTransactionId: res.body.data.id
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  `amount` is integer minor units — `-45.99` is a `422`, not a rounding.
+  `currency` is derived from the account; sending a conflicting one is a
+  `CURRENCY_MISMATCH` rather than a silent overwrite.
+}

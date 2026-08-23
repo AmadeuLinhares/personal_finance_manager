@@ -1,0 +1,27 @@
+meta {
+  name: Update transaction
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/transactions/{{createdTransactionId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "categoryId": "cat_restaurants",
+    "notes": "Recategorised during review"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Editing the `amount` or `accountId` of a **transfer leg** is a `409` — it
+  would unbalance the transfer. Patch the transfer instead.
+}

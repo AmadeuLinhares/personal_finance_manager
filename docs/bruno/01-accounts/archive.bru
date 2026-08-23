@@ -1,0 +1,26 @@
+meta {
+  name: Archive account
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/accounts/{{createdAccountId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "archivedAt": "{{today}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  The non-destructive alternative to DELETE: the account drops out of lists
+  (`includeArchived=false` is the default) but its ledger stays intact.
+}

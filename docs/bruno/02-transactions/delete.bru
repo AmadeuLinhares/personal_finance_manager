@@ -1,0 +1,20 @@
+meta {
+  name: Delete transaction
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/transactions/{{createdTransactionId}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~force: true
+}
+
+docs {
+  Deleting one leg of a transfer is a `409`; delete the transfer instead
+  (`?force=true` orphans the other leg if you really mean it).
+}

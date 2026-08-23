@@ -1,0 +1,30 @@
+meta {
+  name: 422 on an unknown field
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/transactions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "accountId": "acc_chequing",
+    "date": "{{today}}",
+    "amount": -1000,
+    "description": "Typo'd payload",
+    "categorId": "cat_groceries"
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+docs {
+  Bodies are **strict**: `categorId` is a typo, so the request fails loudly
+  instead of the field being silently dropped.
+}

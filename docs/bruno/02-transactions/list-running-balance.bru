@@ -1,0 +1,32 @@
+meta {
+  name: List with running balance
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/transactions?accountId=acc_chequing&sort=-date&withRunningBalance=true&pageSize=50
+  body: none
+  auth: inherit
+}
+
+params:query {
+  accountId: acc_chequing
+  sort: -date
+  withRunningBalance: true
+  pageSize: 50
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  The one derived per-row value the server offers. It requires **exactly one**
+  `accountId` and a date sort (`400` otherwise): a running balance across
+  several accounts has no meaning, and one out of date order is not a balance.
+  
+  It is computed over the account's whole ledger, not the filtered page — a
+  cumulative figure that ignored hidden rows would be wrong. Pending rows get
+  `null`, because an unsettled row has no defensible total.
+}

@@ -1,0 +1,26 @@
+meta {
+  name: 400 BAD_REQUEST (mixed pagination)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/transactions?page=2&offset=120
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 2
+  offset: 120
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  `page`/`pageSize` and `offset`/`limit` address the same rows; asking for both
+  in one request is ambiguous, so it is refused. Unknown sort fields and inverted
+  ranges land here too.
+}

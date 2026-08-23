@@ -1,0 +1,37 @@
+meta {
+  name: Create project
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/projects
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Bathroom retile",
+    "description": "Second-floor bathroom",
+    "status": "planned",
+    "currency": "CAD",
+    "budget": 850000,
+    "startDate": "{{nextMonthFirst}}",
+    "endDate": null,
+    "color": "#0284c7"
+  }
+}
+
+vars:post-response {
+  createdProjectId: res.body.data.id
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  `budget: null` means "track spend, no target". `startDate` after `endDate` is
+  a `409`.
+}

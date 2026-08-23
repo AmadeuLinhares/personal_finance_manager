@@ -1,0 +1,21 @@
+meta {
+  name: Enums and conventions
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/meta
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Every enum the API accepts (account types, category kinds, frequencies,
+  statuses) plus the money/date conventions. Worth reading once before building
+  a form against it.
+}

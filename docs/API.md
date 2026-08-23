@@ -4,6 +4,7 @@ Base URL: `http://localhost:4000/api` — `GET /api` returns a machine-readable 
 of everything below, and `GET /api/meta` returns every enum plus these conventions.
 
 TypeScript definitions for every shape here: [`api-types.d.ts`](./api-types.d.ts).
+A Bruno collection covering every endpoint below: [`bruno/`](./bruno/README.md).
 
 ---
 

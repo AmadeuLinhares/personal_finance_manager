@@ -1,0 +1,57 @@
+meta {
+  name: List transactions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/transactions?page=1&pageSize=25&sort=-date,-createdAt
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  pageSize: 25
+  sort: -date,-createdAt
+  ~offset: 120
+  ~limit: 60
+  ~accountId: acc_visa
+  ~categoryId: cat_groceries
+  ~projectId: proj_remodel
+  ~scheduledItemId: sch_rent
+  ~tag: recurring
+  ~status: posted
+  ~from: {{monthStart}}
+  ~to: {{monthEnd}}
+  ~minAmount: -50000
+  ~maxAmount: -5000
+  ~direction: outflow
+  ~uncategorised: true
+  ~unassigned: true
+  ~includeTransfers: false
+  ~transfersOnly: true
+  ~q: metro
+  ~include: account,category
+}
+
+vars:post-response {
+  transactionId: res.body.data[0].id
+}
+
+assert {
+  res.status: eq 200
+  res.headers['x-total-count']: isDefined
+}
+
+docs {
+  Every filter is optional and combinable — enable the disabled params to try
+  them. Notes:
+  
+  - `minAmount` / `maxAmount` are **signed** minor units, so `maxAmount=-5000`
+    means "spent $50 or more".
+  - `page`/`pageSize` and `offset`/`limit` address the same rows; mixing both in
+    one request is a `400`. Default page size 25, max 500.
+  - `X-Total-Count` is set on list responses and exposed to CORS.
+  - There is no cursor pagination — with an in-memory store it would be theatre.
+}

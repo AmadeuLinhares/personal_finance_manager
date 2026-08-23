@@ -1,0 +1,16 @@
+meta {
+  name: Delete transfer
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/transfers/{{createdTransferId}}
+  body: none
+  auth: inherit
+}
+
+docs {
+  Removes both legs, which is the only way to delete a transfer without
+  unbalancing it.
+}

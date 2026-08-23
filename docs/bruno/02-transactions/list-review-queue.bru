@@ -1,0 +1,27 @@
+meta {
+  name: Review queue (uncategorised)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/transactions?uncategorised=true&includeTransfers=false&sort=-date
+  body: none
+  auth: inherit
+}
+
+params:query {
+  uncategorised: true
+  includeTransfers: false
+  sort: -date
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  ~2% of the seed is uncategorised on purpose, including one row with no
+  category and no merchant (`POS PURCHASE 8841`). Pair with **Bulk update** to
+  categorise a screenful in one request.
+}

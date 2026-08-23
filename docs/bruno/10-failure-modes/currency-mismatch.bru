@@ -1,0 +1,31 @@
+meta {
+  name: 422 CURRENCY_MISMATCH
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/transactions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "accountId": "acc_usd",
+    "date": "{{today}}",
+    "amount": -1000,
+    "description": "CAD on a USD account",
+    "currency": "CAD"
+  }
+}
+
+assert {
+  res.status: eq 422
+  res.body.error.code: eq CURRENCY_MISMATCH
+}
+
+docs {
+  `currency` on a transaction is only an assertion — the account decides. A
+  conflicting one is refused rather than silently overwritten.
+}

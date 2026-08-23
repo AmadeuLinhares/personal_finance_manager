@@ -1,0 +1,22 @@
+meta {
+  name: Chaos off
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/dev/settings
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "latencyMs": 0,
+    "errorRate": 0
+  }
+}
+
+assert {
+  res.status: eq 200
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Store stats
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/dev/stats
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Row counts, the seeded date span, and how many rows are pending, uncategorised
+  or transfer legs.
+}

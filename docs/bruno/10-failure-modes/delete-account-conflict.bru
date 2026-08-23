@@ -1,0 +1,22 @@
+meta {
+  name: 409 CONFLICT (delete a used account)
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/accounts/acc_chequing
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 409
+  res.body.error.code: eq CONFLICT
+}
+
+docs {
+  A `409` whose `message` carries the way forward (`?force=true`, or archive
+  instead). Same shape guards deleting an in-use category and unbalancing a
+  transfer.
+}

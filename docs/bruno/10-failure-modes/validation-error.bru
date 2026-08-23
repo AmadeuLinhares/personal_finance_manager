@@ -1,0 +1,32 @@
+meta {
+  name: 422 VALIDATION_ERROR (decimal amount)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/transactions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "accountId": "acc_chequing",
+    "date": "{{today}}",
+    "amount": -45.99,
+    "description": "Decimals are rejected, not rounded"
+  }
+}
+
+assert {
+  res.status: eq 422
+  res.body.error.code: eq VALIDATION_ERROR
+}
+
+docs {
+  Amounts are integer minor units. A decimal is a `422` with one `details[]`
+  entry per bad field — never a silent round. Converting user input into minor
+  units is the client's job, and doing it at the edge is why nothing downstream
+  can accumulate a float error.
+}

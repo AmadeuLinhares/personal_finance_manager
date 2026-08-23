@@ -1,0 +1,30 @@
+meta {
+  name: List categories
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/categories?includeUsage=true
+  body: none
+  auth: inherit
+}
+
+params:query {
+  includeUsage: true
+  ~kind: expense
+  ~includeArchived: true
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  One level of nesting: a category may have a `parentId`, and a child may not
+  itself be a parent — arbitrary depth would force every report to choose
+  between leaf and rolled-up totals at every level, forever. Each row carries
+  `childIds`; `includeUsage=true` adds `transactionCount`.
+  
+  `monthlyBudget` (minor units, nullable) drives the budget columns in reports.
+}

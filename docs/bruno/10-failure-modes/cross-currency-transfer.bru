@@ -1,0 +1,29 @@
+meta {
+  name: 422 UNSUPPORTED_OPERATION (cross-currency)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/transfers
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fromAccountId": "acc_chequing",
+    "toAccountId": "acc_usd",
+    "amount": 50000,
+    "date": "{{today}}"
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+docs {
+  There are no exchange rates in this API, so there is no honest amount to write
+  on the other leg. Refused instead of invented.
+}

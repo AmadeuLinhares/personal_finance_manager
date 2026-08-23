@@ -1,0 +1,27 @@
+meta {
+  name: Pause scheduled item
+  type: http
+  seq: 9
+}
+
+patch {
+  url: {{baseUrl}}/scheduled-items/{{createdScheduledItemId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "status": "paused"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Takes the item out of every forecast without deleting it — check
+  `08-projections/budget` before and after. `sch_meal_kit` ships paused for
+  exactly this test.
+}

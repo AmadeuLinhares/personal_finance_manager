@@ -1,0 +1,27 @@
+meta {
+  name: Balance history
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/accounts/{{accountId}}/balance-history?granularity=month
+  body: none
+  auth: inherit
+}
+
+params:query {
+  granularity: month
+  ~from: 2026-01-01
+  ~to: {{today}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  The series behind a balance-over-time chart: one closing balance per bucket,
+  with `closingBalance[n] === closingBalance[n-1] + net[n]` by construction.
+  `granularity`: day | week | month | year.
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Chaos on (slow + flaky)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/dev/settings
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "latencyMs": 800,
+    "errorRate": 0.2
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Global, until you turn it off: every request is slow and 1 in 5 fails. Good for
+  exercising loading states, retries and error boundaries for real.
+  
+  `/api/dev/*` is never delayed and never randomly failed, so there is always a
+  way back out.
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Reset store
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/dev/reset
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "months": 18,
+    "scale": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Back to the seed — both fields optional. The store is in-memory, so this (or a
+  restart) undoes anything the mutating requests in this collection did.
+  
+  `scale` multiplies discretionary volume: `1` gives ~1,100 transactions, `4`
+  about 2,900, `10` (the max) about 6,600 — enough to make an unvirtualised list
+  feel bad. Reports stay under 20ms either way, so a slow screen is rendering,
+  not the API.
+}

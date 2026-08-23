@@ -1,0 +1,72 @@
+auth {
+  mode: none
+}
+
+headers {
+  Accept: application/json
+}
+
+script:pre-request {
+  // The seed is anchored to "today", so hardcoded dates rot. These runtime vars
+  // override the ones in the environment; if you open the collection with
+  // scripting disabled, the environment values are used instead.
+  const pad = (n) => String(n).padStart(2, '0');
+  const now = new Date();
+  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+  
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const inThreeMonths = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
+  const nextMonthFirst = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  
+  bru.setVar('today', ymd(now));
+  bru.setVar('monthStart', ymd(monthStart));
+  bru.setVar('monthEnd', ymd(monthEnd));
+  bru.setVar('nextMonthFirst', ymd(nextMonthFirst));
+  bru.setVar('horizon', ymd(inThreeMonths));
+  bru.setVar('thisMonth', ym(now));
+  bru.setVar('sixMonthsAgo', ym(sixMonthsAgo));
+}
+
+docs {
+  # Personal Finance Manager API — Bruno collection
+  
+  Every endpoint of the in-memory Express API described in `docs/API.md`.
+  
+  ## Running it
+  
+  ```bash
+  pnpm --filter @pfm/backend dev      # http://localhost:4000/api
+  ```
+  
+  Pick the **Local** environment, then run folders top to bottom. Requests that
+  need an id read it from the seed (`acc_chequing`, `cat_groceries`,
+  `proj_remodel`, `sch_netflix`, …) or from a `vars:post-response` set by the
+  list request in the same folder — so `01-accounts/list` before
+  `01-accounts/balance` if you want the dynamic one.
+  
+  ## Conventions baked into the requests
+  
+  - **Money is integer minor units.** `-4599` is an outflow of $45.99. A decimal
+    is a `422`, never a rounding.
+  - **Dates are `YYYY-MM-DD`, months `YYYY-MM`**, all ranges inclusive.
+  - **Bodies are strict**: an unknown field is a `422`, so nothing is silently
+    dropped.
+  - Date params use `{{today}}`, `{{monthStart}}`, `{{thisMonth}}`, … computed by
+    the collection pre-request script, because the seed follows the real clock.
+  
+  ## Folders
+  
+  | | |
+  |---|---|
+  | `00-meta` | index, health, every enum |
+  | `01-accounts` … `06-scheduled-items` | CRUD + derived reads per resource |
+  | `07-reports`, `08-projections` | computed views (no `data` envelope) |
+  | `09-dev` | reset the store, global latency/error rate, row counts |
+  | `10-failure-modes` | per-request latency/error injection and the interesting 4xx |
+  
+  The mutating requests in `10-failure-modes` and the `create`/`delete` pairs
+  change the in-memory store. `09-dev/reset` puts it back.
+}

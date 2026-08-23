@@ -1,0 +1,23 @@
+meta {
+  name: Skip an occurrence
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/scheduled-items/sch_gym/skip
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "date": "{{nextMonthFirst}}"
+  }
+}
+
+docs {
+  Dismiss one date without touching the rule. If `{{nextMonthFirst}}` is not an
+  occurrence of `sch_gym`, the `422` response lists the valid nearby dates — use
+  one of those.
+}

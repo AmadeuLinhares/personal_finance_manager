@@ -1,0 +1,32 @@
+meta {
+  name: List scheduled items
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/scheduled-items
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~kind: bill
+  ~accountId: acc_chequing
+  ~status: active
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  A scheduled item is a **rule, not a row**: `startDate` + `frequency` generate
+  dates on demand, so editing an item instantly changes the whole forecast and
+  there is no queue of stale future rows. `nextDueDate` is derived on read, so it
+  cannot go stale. The cost of not materialising: "mark this one paid" lives in
+  `postedOccurrences` and `skippedDates`, keyed by date.
+  
+  18 items in the seed, including one paused (`sch_meal_kit`) and one anchored to
+  the 31st (`sch_water`, quarterly — watch it clamp in February).
+}

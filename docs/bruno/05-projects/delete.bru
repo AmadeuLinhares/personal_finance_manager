@@ -1,0 +1,16 @@
+meta {
+  name: Delete project
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/projects/{{createdProjectId}}
+  body: none
+  auth: inherit
+}
+
+docs {
+  Unassigns its transactions rather than deleting them — they really happened,
+  they just lose the label.
+}

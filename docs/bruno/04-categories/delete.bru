@@ -1,0 +1,26 @@
+meta {
+  name: Delete category
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/categories/{{createdCategoryId}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~reassignTo: cat_restaurants
+  ~force: true
+}
+
+docs {
+  An in-use category is protected:
+  
+  ```
+  DELETE /api/categories/cat_coffee                              409
+  DELETE /api/categories/cat_coffee?reassignTo=cat_restaurants   moves the transactions
+  DELETE /api/categories/cat_coffee?force=true                   leaves them uncategorised
+  ```
+}

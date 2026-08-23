@@ -1,0 +1,43 @@
+meta {
+  name: Monthly expenses
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/reports/monthly-expenses?from={{sixMonthsAgo}}&to={{thisMonth}}&currency=CAD
+  body: none
+  auth: inherit
+}
+
+params:query {
+  from: {{sixMonthsAgo}}
+  to: {{thisMonth}}
+  currency: CAD
+  ~accountId: acc_chequing
+  ~projectId: proj_remodel
+  ~includePending: true
+  ~includeTransfers: false
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  User story 3. Expenses by category, month by month, with budget comparison.
+  `from`/`to` are `YYYY-MM` and inclusive; default is the last 6 months.
+  
+  - Classification follows **the sign of the amount, not the category's kind** —
+    a refund is an inflow even under an expense category, which is why every row
+    carries `inflow`, `outflow` and `net`. Gross vs. net is the client's call.
+  - Uncategorised spend is a row with `categoryId: null` and name
+    "Uncategorised", not a separate bucket — one representation to render.
+  - `monthlyBudget` is the category's setting; `budget` is that setting scaled to
+    the period, so in `totals.byCategory` it is `monthlyBudget × monthCount`.
+  - Child categories report as themselves and carry `parentId`; rolling up to
+    parents is left to the client on purpose.
+  - Two exclusions are applied by default and always reported back under
+    `excluded`: transfer legs (`includeTransfers=true` to keep them) and other
+    currencies (there are no exchange rates in this API).
+}

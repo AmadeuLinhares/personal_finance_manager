@@ -1,0 +1,15 @@
+meta {
+  name: Get scheduled item
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/scheduled-items/{{scheduledItemId}}
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+}

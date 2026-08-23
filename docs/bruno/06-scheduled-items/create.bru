@@ -1,0 +1,48 @@
+meta {
+  name: Create scheduled item
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/scheduled-items
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Rent",
+    "kind": "bill",
+    "accountId": "acc_chequing",
+    "categoryId": "cat_rent",
+    "projectId": null,
+    "amount": -215000,
+    "frequency": "monthly",
+    "startDate": "{{nextMonthFirst}}",
+    "endDate": null,
+    "autoPay": true,
+    "status": "active",
+    "notes": null,
+    "variance": 0
+  }
+}
+
+vars:post-response {
+  createdScheduledItemId: res.body.data.id
+  createdScheduledItemDate: res.body.data.startDate
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  Signed like a transaction: **bills must be negative, income positive** — the
+  other way round is a `422` with code `sign_mismatch`.
+  
+  `frequency`: once | weekly | biweekly | monthly | quarterly | yearly. For the
+  monthly family, `startDate` also fixes the day of month. `variance` is the
+  expected swing around `amount` — documentation for humans, nothing computes
+  with it.
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Get transaction
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/transactions/{{transactionId}}?include=account,category,project,scheduledItem
+  body: none
+  auth: inherit
+}
+
+params:query {
+  include: account,category,project,scheduledItem
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Run **List transactions** first — it sets `transactionId`. `include` embeds
+  relations instead of returning bare foreign keys.
+}

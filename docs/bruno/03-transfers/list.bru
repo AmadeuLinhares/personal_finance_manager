@@ -1,0 +1,26 @@
+meta {
+  name: List transfers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/transfers
+  body: none
+  auth: inherit
+}
+
+vars:post-response {
+  transferId: res.body.data[0].transferId
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  A transfer is not a third kind of record — it is two transactions sharing a
+  `transferId`, one negative and one positive. Each account's ledger stays
+  complete on its own, and reports drop both legs with one rule instead of
+  special-casing account pairs. `isOrphaned: true` marks a pair that lost a leg.
+}

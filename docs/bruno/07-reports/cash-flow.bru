@@ -1,0 +1,29 @@
+meta {
+  name: Cash flow
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/reports/cash-flow?granularity=month&currency=CAD
+  body: none
+  auth: inherit
+}
+
+params:query {
+  granularity: month
+  currency: CAD
+  ~from: 2025-09-01
+  ~to: {{today}}
+  ~accountId: acc_chequing
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Inflow vs. outflow per bucket over the last 12 months by default, plus a
+  `savingsRate` per bucket — `null` when there was no income, rather than a
+  misleading zero.
+}

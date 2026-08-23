@@ -1,0 +1,28 @@
+meta {
+  name: Category breakdown
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/reports/category-breakdown?from={{monthStart}}&to={{monthEnd}}&currency=CAD
+  body: none
+  auth: inherit
+}
+
+params:query {
+  from: {{monthStart}}
+  to: {{monthEnd}}
+  currency: CAD
+  ~accountId: acc_visa
+  ~projectId: proj_france
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  One flat total per category over an arbitrary **date** range (not month range),
+  plus `outflowShare` (0–1) — the pie-chart endpoint.
+}

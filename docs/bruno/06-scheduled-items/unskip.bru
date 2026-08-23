@@ -1,0 +1,17 @@
+meta {
+  name: Unskip an occurrence
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/scheduled-items/sch_gym/unskip
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "date": "{{nextMonthFirst}}"
+  }
+}

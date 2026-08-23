@@ -1,0 +1,20 @@
+meta {
+  name: Slow via header
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/accounts
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-simulate-latency: 1500
+}
+
+docs {
+  Same thing without touching the query string — handy when the URL is generated
+  by your data layer and you only want to poke one call.
+}

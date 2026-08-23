@@ -1,0 +1,36 @@
+meta {
+  name: Create transfer
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/transfers
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fromAccountId": "acc_chequing",
+    "toAccountId": "acc_savings",
+    "amount": 50000,
+    "date": "{{today}}",
+    "description": "Monthly saving",
+    "status": "posted"
+  }
+}
+
+vars:post-response {
+  createdTransferId: res.body.data.transferId
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  `amount` is a positive magnitude — the legs get their signs derived. Same
+  account on both sides is a `422`; different currencies is a
+  `422 UNSUPPORTED_OPERATION`, because there is no rate to convert with.
+}

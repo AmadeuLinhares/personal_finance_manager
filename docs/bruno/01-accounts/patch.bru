@@ -1,0 +1,26 @@
+meta {
+  name: Update account
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/accounts/{{createdAccountId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Joint Chequing (shared)",
+    "color": "#0284c7"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Run **Create account** first — it sets `createdAccountId`.
+}

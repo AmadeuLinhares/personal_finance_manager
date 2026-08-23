@@ -1,0 +1,32 @@
+meta {
+  name: Post an occurrence
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/scheduled-items/{{createdScheduledItemId}}/post
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "date": "{{createdScheduledItemDate}}",
+    "amount": -215000,
+    "status": "posted"
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  Turns one occurrence into a real transaction. The amount defaults to the
+  scheduled one but may differ — the hydro bill never matches the estimate.
+  
+  `422 NOT_AN_OCCURRENCE` if the rule doesn't fall on that date (the error lists
+  nearby valid dates); `409` if that occurrence was already posted. Once posted,
+  it disappears from the forecast.
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Delete account (force)
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/accounts/{{createdAccountId}}?force=true
+  body: none
+  auth: inherit
+}
+
+params:query {
+  force: true
+}
+
+docs {
+  Without `force` this is a `409` while any transaction exists. With it, the
+  delete cascades (transactions and scheduled items go too) and the response
+  reports what it removed.
+}

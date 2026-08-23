@@ -1,0 +1,48 @@
+meta {
+  name: Budget projection
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/projections/budget?granularity=month&currency=CAD&asOf={{today}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  granularity: month
+  currency: CAD
+  asOf: {{today}}
+  ~from: {{today}}
+  ~to: 2027-02-28
+  ~accountId: acc_chequing
+  ~includeScheduled: true
+  ~includeCategoryBudgets: true
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  User story 4. Where the total balance is heading.
+  
+  **The rule that makes it coherent:** dates up to and including `asOf` use
+  **actual transactions**; dates after it use **scheduled occurrences that have
+  not been posted**. Without that split, a rent payment that already cleared
+  would be counted once as a transaction and again as this month's bill.
+  
+  The consequence is that the bucket containing `asOf` is a hybrid — part
+  history, part forecast. It is flagged `isPartiallyProjected`, and `actual` and
+  `scheduled` stay separate in every bucket so the client can render the seam
+  however it likes. `closingBalance` chains:
+  `closing[n] === closing[n-1] + net[n]`.
+  
+  Deliberately excluded: paused items, occurrences already posted or skipped,
+  transfers, and **discretionary spending** — this is a commitments forecast, not
+  a behavioural model. `includeCategoryBudgets=true` bolts on a crude estimate
+  from the monthly category budgets and labels it an assumption, not a fact.
+  
+  `asOf` is movable, so you can ask what last month's projection would have said.
+}
