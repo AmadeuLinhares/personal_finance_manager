@@ -19,7 +19,7 @@ import {
 
 /** The bordered box. On Input it wraps the control so adornments can sit inside it. */
 const BOX =
-  'flex min-h-9 w-full items-center gap-2 rounded-md border border-divider bg-transparent px-2.2 ' +
+  'flex min-h-9 w-full items-center gap-2 rounded-md border border-divider bg-transparent px-2 ' +
   'hover:border-ink/45 has-[[aria-invalid]]:border-accent-700 ' +
   'has-[:focus-visible]:border-accent has-[:focus-visible]:outline-2 ' +
   'has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ' +
@@ -27,13 +27,13 @@ const BOX =
 
 /** A control that is its own box — select and textarea take no adornments. */
 const PLAIN =
-  'w-full min-h-9 px-2.2 py-1.3 text-ui text-ink caret-accent bg-transparent ' +
+  'w-full min-h-9 px-2 py-1.5 text-ui text-ink caret-accent bg-transparent ' +
   'border border-divider rounded-md hover:border-ink/45 focus-visible:border-accent ' +
   'aria-invalid:border-accent-700 disabled:opacity-45';
 
 /** The control inside a BOX: no border, no ring — the box shows both. */
 const INNER =
-  'h-full w-full min-w-0 bg-transparent py-1.3 text-ui text-ink caret-accent outline-none ' +
+  'h-full w-full min-w-0 bg-transparent py-1.5 text-ui text-ink caret-accent outline-none ' +
   'placeholder:text-ink/40 disabled:cursor-not-allowed';
 
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'prefix'> {

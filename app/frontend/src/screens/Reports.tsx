@@ -53,7 +53,7 @@ export function Reports() {
               <div className='flex flex-col gap-3'>
                 {report.categories.map((category) => (
                   <div key={category.name}>
-                    <div className='gap-2.2 mb-1.5 flex justify-between text-ui'>
+                    <div className='mb-1.5 flex justify-between gap-2 text-ui'>
                       <span>
                         {category.name}
                         {category.overBudget ? (

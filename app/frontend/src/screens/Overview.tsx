@@ -93,7 +93,7 @@ export function Overview({ onGo }: OverviewProps) {
           <div className='flex flex-col gap-3'>
             {topSpend.map((category) => (
               <div key={category.name}>
-                <div className='gap-2.2 mb-1.5 flex justify-between text-ui'>
+                <div className='mb-1.5 flex justify-between gap-2 text-ui'>
                   <span>{category.name}</span>
                   <Money minorUnits={category.outflow} colorInflow={false} />
                 </div>
@@ -119,7 +119,7 @@ export function Overview({ onGo }: OverviewProps) {
             {upcoming.map((occurrence) => (
               <li
                 key={occurrence.id}
-                className='gap-2.2 flex items-center justify-between border-b border-divider py-2 text-ui'
+                className='flex items-center justify-between gap-2 border-b border-divider py-2 text-ui'
               >
                 <span>
                   <DateText value={occurrence.due} className='text-ink/55' /> · {occurrence.name}

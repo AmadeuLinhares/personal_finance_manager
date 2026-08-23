@@ -20,7 +20,7 @@ export const CategoryVsBudget: Story = {
   render: () => (
     <div className='md:grid-cols-2 grid max-w-[900px] gap-6'>
       <div>
-        <div className='gap-2.2 mb-1.5 flex justify-between text-ui'>
+        <div className='mb-1.5 flex justify-between gap-2 text-ui'>
           <span>Groceries</span>
           <span>
             <Money minorUnits={20640} colorInflow={false} />{' '}
@@ -31,7 +31,7 @@ export const CategoryVsBudget: Story = {
         <div className='mt-1.5 text-label text-ink/55'>track neutral-200 · mark accent-500</div>
       </div>
       <div>
-        <div className='gap-2.2 mb-1.5 flex justify-between text-ui'>
+        <div className='mb-1.5 flex justify-between gap-2 text-ui'>
           <span>
             Housing{' '}
             <Tag variant='accent' className='ml-1'>
@@ -57,14 +57,14 @@ export const SpentPlusCommitted: Story = {
   render: () => (
     <div className='md:grid-cols-2 grid max-w-[900px] gap-6'>
       <div>
-        <div className='gap-2.2 mb-1.5 flex justify-between text-ui-sm'>
+        <div className='mb-1.5 flex justify-between gap-2 text-ui-sm'>
           <span className='text-ink/55'>$31,606.50 of $34,000.00 budget</span>
           <span className='tabular-nums'>94%</span>
         </div>
         <Bar spent={3160650} budget={3400000} committed={30000} size='sm' />
       </div>
       <div>
-        <div className='gap-2.2 mb-1.5 flex justify-between text-ui-sm'>
+        <div className='mb-1.5 flex justify-between gap-2 text-ui-sm'>
           <span className='text-ink/55'>$1,180.00 of $3,500.00 budget</span>
           <span className='tabular-nums'>40%</span>
         </div>

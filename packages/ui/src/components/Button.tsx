@@ -18,7 +18,7 @@ const VARIANT = {
 } as const;
 
 const PADDING = {
-  md: 'px-3.6 py-2',
+  md: 'px-3.5 py-2',
   sm: 'px-3 py-1 text-ui-sm',
 } as const;
 

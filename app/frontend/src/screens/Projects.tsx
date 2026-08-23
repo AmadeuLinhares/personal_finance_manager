@@ -48,7 +48,7 @@ export function Projects({ onNewProject, onViewTransactions }: ProjectsProps) {
           const percent = Math.round((projected / project.budget) * 100);
           return (
             <Card key={project.id} className='gap-3'>
-              <div className='gap-2.2 flex items-baseline justify-between'>
+              <div className='flex items-baseline justify-between gap-2'>
                 <CardTitle className='text-[22px]'>{project.name}</CardTitle>
                 <Tag variant={STATUS_VARIANT[project.status]} className='whitespace-nowrap'>
                   {project.status}
@@ -56,7 +56,7 @@ export function Projects({ onNewProject, onViewTransactions }: ProjectsProps) {
               </div>
 
               <div>
-                <div className='gap-2.2 mb-1.5 flex justify-between text-ui-sm'>
+                <div className='mb-1.5 flex justify-between gap-2 text-ui-sm'>
                   <span className='text-ink/55'>
                     <Money minorUnits={project.spent} colorInflow={false} /> of{' '}
                     <Money minorUnits={project.budget} colorInflow={false} /> budget
@@ -79,7 +79,7 @@ export function Projects({ onNewProject, onViewTransactions }: ProjectsProps) {
                 {project.recent.map((expense) => (
                   <li
                     key={`${expense.date}-${expense.label}`}
-                    className='gap-2.2 flex justify-between border-b border-divider py-2 text-ui'
+                    className='flex justify-between gap-2 border-b border-divider py-2 text-ui'
                   >
                     <span>
                       <DateText value={expense.date} className='text-ink/55' /> · {expense.label}
