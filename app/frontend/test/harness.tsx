@@ -13,7 +13,10 @@ import { vi } from 'vitest';
  */
 interface StubbedRequest {
   url: string;
+  method: string;
   params: URLSearchParams;
+  /** The parsed JSON body, for asserting what a mutation actually sent. */
+  body: unknown;
 }
 
 type Route = (request: StubbedRequest) => { status?: number; body: unknown };
@@ -30,9 +33,14 @@ export function stubFetch(routes: Partial<Record<string, Route>>) {
   vi.stubGlobal(
     'fetch',
     // Only ever called by `fetchData`, which builds a string URL.
-    vi.fn((url: string) => {
+    vi.fn((url: string, init?: RequestInit) => {
       const [path, query = ''] = url.replace('/api', '').split('?');
-      const request = { url, params: new URLSearchParams(query) };
+      const request = {
+        url,
+        method: init?.method ?? 'GET',
+        params: new URLSearchParams(query),
+        body: typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : null,
+      };
       calls.push(request);
 
       const route: Route | undefined = routes[path];
@@ -54,6 +62,8 @@ export function stubFetch(routes: Partial<Record<string, Route>>) {
     calls,
     /** The last call to a path — the request the current filters produced. */
     lastTo: (path: string) => calls.filter((call) => call.url.startsWith(`/api${path}`)).at(-1),
+    /** Every call whose URL contains this fragment, in order. */
+    matching: (fragment: string) => calls.filter((call) => call.url.includes(fragment)),
   };
 }
 
