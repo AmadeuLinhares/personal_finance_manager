@@ -1,13 +1,14 @@
 import { Button, VisuallyHidden, cn } from '@pfm/ui';
 import { Plus } from 'lucide-react';
+import { type ReactNode } from 'react';
 
 import { IMPLEMENTED_SCREENS, type Screen, SCREENS } from './screens';
 
 export interface AppHeaderProps {
   screen: Screen;
   onScreenChange: (screen: Screen) => void;
-  /** The scope line: which month and which currency everything below is in. */
-  scope: string;
+  /** The balance line. A node, not a string: the header renders it, it does not own it. */
+  scope: ReactNode;
   onNewTransaction: () => void;
 }
 
@@ -53,9 +54,7 @@ export function AppHeader({ screen, onScreenChange, scope, onNewTransaction }: A
           })}
         </nav>
 
-        <span className='hidden text-ui-sm whitespace-nowrap text-ink/55 tabular-nums lg:inline'>
-          {scope}
-        </span>
+        {scope}
         <Button
           variant='primary'
           className='flex-none whitespace-nowrap'

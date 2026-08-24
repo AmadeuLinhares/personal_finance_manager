@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { AppFooter } from './app/AppFooter';
 import { AppHeader } from './app/AppHeader';
+import { BalanceScope } from './app/BalanceScope';
 import { IMPLEMENTED_SCREENS, type Screen } from './app/screens';
 import { ProjectDialog } from './dialogs/ProjectDialog';
 import { ScheduleDialog } from './dialogs/ScheduleDialog';
@@ -34,7 +35,7 @@ function App() {
       <AppHeader
         screen={screen}
         onScreenChange={setScreen}
-        scope='August 2026 · CAD'
+        scope={<BalanceScope />}
         onNewTransaction={() => {
           setDialog('transaction');
         }}
