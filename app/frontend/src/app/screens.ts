@@ -8,4 +8,4 @@ export type Screen = (typeof SCREENS)[number];
  * and says so — a half-wired screen that looks finished is worse than one that
  * admits what it is.
  */
-export const IMPLEMENTED_SCREENS: readonly Screen[] = ['Transactions'];
+export const IMPLEMENTED_SCREENS: readonly Screen[] = ['Transactions', 'Reports'];
