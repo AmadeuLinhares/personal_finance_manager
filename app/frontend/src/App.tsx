@@ -46,8 +46,8 @@ function App() {
             <Tag variant='outline' className='mr-2'>
               not implemented
             </Tag>
-            Layout only — this screen still reads from fixtures. Transactions is the one wired to
-            the API.
+            Layout only — this screen still reads from fixtures. Transactions, Reports and Planning
+            are the ones wired to the API.
           </Notice>
         )}
 

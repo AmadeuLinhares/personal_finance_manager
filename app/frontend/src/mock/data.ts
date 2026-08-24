@@ -9,7 +9,7 @@
 
 export type Currency = 'CAD' | 'USD';
 type TxStatus = 'posted' | 'pending';
-export type OccurrenceStatus = 'overdue' | 'scheduled' | 'posted' | 'skipped';
+type OccurrenceStatus = 'overdue' | 'scheduled' | 'posted' | 'skipped';
 export type ProjectStatus = 'active' | 'planned' | 'completed';
 
 export interface Account {

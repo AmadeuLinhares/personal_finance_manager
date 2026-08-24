@@ -9,7 +9,6 @@
 import {
   type Account,
   type Currency,
-  type Occurrence,
   type Transaction,
   ACCOUNTS,
   BUDGETS,
@@ -148,16 +147,4 @@ export function budgetProjection(months: number) {
 
   const lowest = series.reduce((low, point) => (point.value < low.value ? point : low), series[0]);
   return { series, start, ending: balance, delta: balance - start, lowest };
-}
-
-export function occurrenceTotals(occurrences: Occurrence[]) {
-  const open = occurrences.filter(
-    (occurrence) => occurrence.status === 'overdue' || occurrence.status === 'scheduled',
-  );
-  return {
-    bills: open.filter((occurrence) => occurrence.amount < 0).reduce((sum, o) => sum + o.amount, 0),
-    income: open
-      .filter((occurrence) => occurrence.amount > 0)
-      .reduce((sum, o) => sum + o.amount, 0),
-  };
 }
