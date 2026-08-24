@@ -14,6 +14,8 @@ import {
   Tag,
   Td,
   Tr,
+  VisuallyHidden,
+  formatMonth,
   toIsoMonth,
 } from '@pfm/ui';
 import { useMemo, useState } from 'react';
@@ -162,6 +164,9 @@ export function Reports() {
                 }}
               >
                 {option ? 'Rolled up' : 'Leaf'}
+                {option && !canRollUp ? (
+                  <VisuallyHidden> — unavailable until the category names load</VisuallyHidden>
+                ) : null}
               </SegmentedOption>
             ))}
           </Segmented>
@@ -200,6 +205,18 @@ export function Reports() {
       ) : (
         <div className='grid gap-8 lg:grid-cols-[1.4fr_1fr]' aria-busy={isFetching}>
           <section>
+            {/*
+              `aria-busy` alone announces nothing, and every control on this
+              screen replaces the whole report. This is the line that says so.
+            */}
+            <p className='mb-3 text-ui-sm text-ink/55' role='status'>
+              {`${formatMonth(month)} · ${String(rows.length)} ${
+                rows.length === 1 ? 'category' : 'categories'
+              } · ${rolledUp && canRollUp ? 'rolled up into parents' : 'as reported'}${
+                isFetching ? ' · updating…' : ''
+              }`}
+            </p>
+
             {rows.length === 0 ? (
               <EmptyState
                 className='py-8'
@@ -208,9 +225,9 @@ export function Reports() {
               />
             ) : (
               <>
-                <div className='flex flex-col gap-3'>
+                <ul className='flex flex-col gap-3'>
                   {rows.map((row) => (
-                    <div key={row.key}>
+                    <li key={row.key}>
                       <div className='mb-1.5 flex justify-between gap-2 text-ui'>
                         <span>
                           {row.name}
@@ -237,9 +254,9 @@ export function Reports() {
                         </span>
                       </div>
                       <Bar spent={row.outflow} budget={row.budget ?? widest} />
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
 
                 <Divider />
 
@@ -252,6 +269,7 @@ export function Reports() {
                           .join(' · ')}`}
                   </Notice>
                   <span className='font-heading text-[28px] font-semibold whitespace-nowrap tabular-nums'>
+                    <VisuallyHidden>Total outflow this month: </VisuallyHidden>
                     <Money
                       minorUnits={-(report?.outflow ?? 0)}
                       currency={currency}
@@ -266,7 +284,7 @@ export function Reports() {
           <section>
             <Kicker>Month totals</Kicker>
             <Divider className='mt-2 mb-0' />
-            <Table>
+            <Table caption='Month totals'>
               <tbody>
                 <Tr>
                   <Td>Outflow</Td>
