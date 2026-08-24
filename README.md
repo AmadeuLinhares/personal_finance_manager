@@ -1,0 +1,265 @@
+# Folio — a personal finance manager
+
+A React + TypeScript client for the [Personal Finance Manager challenge](docs/CHALLENGE.md),
+built on the in-memory API that ships with this repo.
+
+Four of the five user stories, in three screens, on a design system built here
+rather than adopted. The reasoning for every one of those choices is below.
+
+---
+
+## Running it
+
+Requires **Node 22.22+** and **pnpm 11**.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+- **Client** — <http://localhost:5173>
+- **API** — <http://localhost:4000/api> (that URL lists every endpoint)
+
+The client's dev server proxies `/api` to the backend, so nothing is same-origin
+by accident and no CORS is involved. One `Ctrl-C` stops both.
+
+|                                               |                                                        |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `pnpm test`                                   | 111 tests — 52 API, 31 design system, 28 screens       |
+| `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                 |
+| `pnpm storybook`                              | the design system in isolation                         |
+| `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions) |
+
+**To see the loading and error states**, make the API misbehave — per request
+with `?__latency=2000` or `?__error=500`, or globally:
+
+```bash
+curl -X POST localhost:4000/api/dev/settings -H 'content-type: application/json' \
+  -d '{"latencyMs": 800, "errorRate": 0.2}'
+```
+
+---
+
+## What I built
+
+The brief says five screens rushed are worth less than three done properly, and
+that the user stories are a menu rather than a checklist. I took it literally.
+
+| Screen           | User story | What it does                                                                                                                  |
+| ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Transactions** | 1          | Paged ledger; filters for account, status, direction, full date range and search, all as query params; running balance column |
+| **Reports**      | 3          | Expenses by category for a month, against budget, with a leaf/rolled-up toggle and the excluded rows named                    |
+| **Planning**     | 4          | Upcoming bills and income with post/skip/undo per date, and a balance projection with the actual/forecast seam drawn          |
+| _the header_     | 2          | "Balance as of" any date, on every screen                                                                                     |
+
+User story 2 has no screen of its own on purpose. A balance is not a
+destination — it is the number every other screen is read against, so it lives
+in the header, where changing the date changes the frame around whatever you are
+already looking at.
+
+Creating things works too: a transaction, a transfer, and a scheduled item, each
+with the API's validation errors landing under the field that caused them.
+
+### What I deliberately left out
+
+|                                      | Why                                                                                                                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **User story 5 — Projects**          | Another aggregate over the same ledger, and `GET /projects` already embeds the summary, so "implementing" it would be mostly rendering. High screen cost, low argument.                |
+| **Overview and Projects screens**    | Still layout over fixtures. They are marked in the nav and carry a banner saying so — a half-wired screen that looks finished is worse than one that admits what it is.                |
+| **CRUD for accounts and categories** | Repeats the form the transaction dialog already demonstrates. The interesting case is `DELETE /categories/:id` with `reassignTo` vs `force`, and that is a conversation, not a screen. |
+| **A router**                         | Screens are local state. Nothing deep-links yet; this is the first thing I would add, and it is a contained change.                                                                    |
+| **Auth**                             | The brief says to skip it.                                                                                                                                                             |
+
+---
+
+## Architecture
+
+### Server state is not client state, and the split is enforced by where code lives
+
+Everything the API owns goes through TanStack Query in `src/http/`: one hook per
+endpoint, filters typed, query keys carrying those filters. Everything the _user_
+owns — which month, which currency, which row is mid-flight — is `useState` in
+the screen. There is no store in between, because there is nothing to put in one:
+after the server state moves out, what is left is small and local.
+
+**Every filter is a query param.** Nothing is filtered, sorted or paged in the
+client. A client-side filter over one page of results is a lie about the other
+pages, and the moment the list is bigger than the page it is also wrong.
+
+**Filters live inside the query key.** Going back to last month is a cache hit
+rather than a refetch, and `asOf` in the key is what stops a historical balance
+from overwriting today's.
+
+### Invalidation is a decision per mutation, not a policy
+
+This is where a finance client gets interesting, because one write moves several
+derived numbers and each mutation moves a different set:
+
+| Mutation           | Invalidates                                                   | Why                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Post an occurrence | transactions, accounts, reports, projections, scheduled-items | It writes a real transaction, so the ledger, the balances and the month's category totals all move — and the occurrence leaves the forecast |
+| Skip an occurrence | scheduled-items, projections                                  | Nothing is written. The ledger, the balances and the reports cannot have changed                                                            |
+| Create a transfer  | transactions, transfers, accounts, projections                | Two legs, two accounts — but reports exclude transfer legs by default, so nothing they show has changed                                     |
+
+Treating these alike would mean either refetching the whole app to dismiss a
+bill, or leaving a bill on screen after paying it. Both are visible to the user.
+
+### Derived values live where the data they need lives
+
+- **Running balance — server.** It depends on every prior row in the ledger, and
+  the client holds eight of them. It is requested with `withRunningBalance=true`,
+  and only when a single account is selected and the sort is by date, because
+  those are the conditions under which it means anything. Pending rows come back
+  `null`, and the column shows that rather than inventing a total.
+- **Category roll-up — client.** The API reports child categories as themselves,
+  carrying `parentId`, and leaves the roll-up open on purpose. Both readings are
+  true — "Utilities went over budget" and "Housing is fine" can both hold — so it
+  is a toggle rather than a decision made for the user.
+- **Projection — server.** The seam between actuals and forecast is the whole
+  problem, and only the server knows where it falls. The client draws it.
+
+### Errors carry their code
+
+The transport never throws: `fetchData` returns a discriminated union, hooks
+decide what a failure means. A `422` with `details[]` gets pinned per field; a
+`409` or a dead server has no field to sit under and is shown in full, **with the
+code**. `CURRENCY_MISMATCH` and `VALIDATION_ERROR` are both 422s and mean
+different things, so the code is the part that makes the message unambiguous.
+
+---
+
+## Handling real-world data
+
+The seed has edge cases planted in it on purpose. These are the ones that shaped
+the code:
+
+**Money is an integer number of minor units, everywhere.** No float ever touches
+an amount. The conversion happens once, at the input mask, and a value that is
+not exactly representable is refused rather than rounded — the same thing the API
+does with a 422. `−$45.99` is `-4599`, negative means money left the account, and
+`Money` renders a real minus sign because a hyphen does not line up in a column of
+figures.
+
+**Two currencies are never summed.** There are no FX rates here, so the report is
+per-currency, the header balance says CAD, and the USD account's rows are counted
+as excluded rather than quietly dropped.
+
+**Dates are calendar days, not instants.** `2026-08-21` is a day something
+happened on. `new Date('2026-08-21')` is UTC midnight, which renders as the 20th
+anywhere west of Greenwich, so dates are parsed by splitting the string and
+compared as strings — which works, because ISO dates sort lexicographically. The
+seed has two transactions straddling a month boundary specifically so this leaks
+if you get it wrong.
+
+**A report that drops rows says which.** Transfer legs, other-currency rows and
+out-of-scope transactions are counted and named on screen. A total that silently
+excludes money is a wrong total presented confidently.
+
+**Large lists: paged, not virtualised — for now.** The default seed is ~1,100
+rows and `scale: 10` gives ~6,600. Paging is 8 rows a page against the server,
+which is correct at any size; virtualisation would only matter for a "show
+everything" view that does not exist yet. I have not measured it, and I would
+measure before building it.
+
+---
+
+## Design system
+
+**Built, not adopted** — `@pfm/tokens` (colour, spacing, type, radii as CSS
+variables and typed values), `@pfm/ui` (36 exported primitives on Tailwind v4), and
+Storybook.
+
+The reason is that the domain primitives are where the consistency actually
+matters, and no library ships them: `Money` knows minor units and sign
+convention, `DateText` knows a calendar day is not a timestamp, `Bar` knows what
+over-budget looks like, `TrendChart` knows a forecast must not read as history.
+Adopting MUI would still have left all four to write, on top of learning
+somebody else's theming.
+
+Two decisions worth naming:
+
+- **The package ships source, not a build.** Tailwind generates utilities by
+  scanning text for literal class strings; point it at a `dist` and every class
+  used only inside a component silently vanishes from the app's CSS. A missing
+  class does not error, it just does nothing — so the artefact that could go
+  stale simply does not exist. The cost is that the consumer compiles TSX, which
+  every consumer here already does.
+- **Selection is a stroke, not a fill.** Consistent across Button, Segmented and
+  the calendar, and it keeps contrast where a filled state would drop it.
+
+Where it fought me: `Field` owns the label/hint/error and the aria wiring that
+goes with them, which means a component used inside it must not render its own
+label — a rule that is invisible until someone breaks it. And a portalled
+`DatePicker` panel lives outside the dialog's DOM, so its focus trap cannot reach
+the calendar; the fix is a `portal={false}` prop, which is the kind of leak a
+bought design system would have solved for me.
+
+---
+
+## Quality
+
+**States are real, not placeholders.** Every screen has loading, error with the
+code and a retry, empty, and _partial_ failure — when Reports cannot load
+category names, the report still renders and says the roll-up is unavailable
+instead of failing whole.
+
+**Accessibility.** Focus trap and restore in `Dialog`; `role="status"` lines that
+say what changed, because `aria-busy` on its own announces nothing; a visually
+hidden `<caption>` on every table; per-row action buttons that name their row, so
+thirty buttons are not all called "Post"; a chart whose series is repeated as a
+screen-reader table, so magnitude never depends on the line alone. `@storybook/addon-a11y` runs axe over every
+story, which is where contrast and landmark problems surface. Known gaps: no
+arrow-key navigation inside the calendar grid, and no axe run over the assembled
+screens — what the screen tests assert is roles and accessible names, not colour.
+
+**Testing — what, and why that.** 28 screen tests, and the seam is `fetch`, not
+the query hooks. A test that mocks `useGetTransactions` proves the component can
+render its own mock; it would pass with the filters wired to nothing. Stubbing
+the transport keeps the query keys, the param building and the error mapping
+inside what is under test. So the tests cover the things that can be silently
+wrong: that an unset filter is _absent_ from the request rather than sent empty,
+that the roll-up sums budgets as well as spend, that posting carries the rule id
+_and_ the date, that the chart's seam is where I claim it is. Each one was
+mutation-checked — break the line it covers, watch it fail — because a test that
+cannot fail is decoration.
+
+---
+
+## Where I used AI
+
+I used Claude Code throughout, and I own all of it.
+
+- **The backend is not mine.** It ships with the starter repo. I read its
+  contract closely — `docs/API.md` and the Bruno collection — and probed every
+  endpoint I consume with `curl` before writing against it, including the failure
+  cases (`409` on a double post, `422 NOT_AN_OCCURRENCE`, the sign check on a
+  bill). I did not review its implementation, and the brief says I do not have to.
+- **The client is AI-assisted and human-directed.** The decisions in this README
+  are the ones I made and can defend: what to leave out, where derived values
+  live, what each mutation invalidates, building the design system, the fetch
+  seam in the tests. The code that implements them was largely written with
+  Claude, then reviewed, corrected and mutation-checked.
+- **Where I pushed back on it.** The first pass at Reports announced nothing to a
+  screen reader and had no tests at all — both were caught by asking for a review
+  rather than by the code looking wrong.
+
+Ask me about any file in here.
+
+---
+
+## What I would do next
+
+1. **A router.** Screens are local state today. Deep links, back-button
+   behaviour, and filters in the URL — the last one is what makes a support
+   conversation possible ("send me the link you're looking at").
+2. **Measure the list, then decide.** Reset with `scale: 10`, profile the table,
+   and virtualise only if the numbers say so. If the store were ever real, cursor
+   pagination would matter more than either.
+3. **User story 5**, now that Planning proved the project link is already carried
+   on occurrences and transactions.
+4. **Optimistic updates for post and skip**, with rollback. They are the two
+   actions where the round trip is visible, and the invalidation map that makes
+   them correct already exists.
+5. **Editing and deleting** transactions and scheduled items. Creating is wired;
+   the rest is the same shape, plus the `reassignTo` vs `force` conversation on
+   category deletion.

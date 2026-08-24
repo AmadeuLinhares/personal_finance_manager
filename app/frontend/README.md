@@ -1,75 +1,34 @@
-# React + TypeScript + Vite
+# @pfm/frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The client. Vite + React 19 + TypeScript, TanStack Query for server state,
+react-hook-form for the dialogs, `@pfm/ui` for everything visible.
 
-Currently, two official plugins are available:
+The decisions — what is built, what is left out, where derived values live, what
+each mutation invalidates — are in the [root README](../../README.md). This file
+is the map of the folder.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```text
+src/
+  app/        the shell: header, footer, screen registry, query provider
+  screens/    one file per screen; state that is the user's lives here
+  dialogs/    the three forms
+  http/       everything the API owns
+    queries/    one hook per GET, filters typed, filters inside the query key
+    mutations/  one hook per write, each with its own invalidation set
+    fetch/      the single wrapper; returns a union, never throws
+    routes.ts   every URL, in one place
+    api-types.ts  copied from docs/api-types.d.ts — the server wins on conflict
+  utils/      query-string building, API error → form error
+  mock/       fixtures for the two screens that are still layout only
+test/         screen tests; the seam is fetch, not the query hooks
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+pnpm dev          # this package alone, on :5173, proxying /api to :4000
+pnpm test         # vitest + testing-library over happy-dom
+pnpm type-check   # tsc -b --noEmit
+pnpm lint         # eslint, type-aware
+pnpm knip         # unused files, exports and dependencies
 ```
+
+`VITE_API_URL` overrides the dev proxy for a build pointed at a real host.
