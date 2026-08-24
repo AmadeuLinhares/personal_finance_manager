@@ -78,6 +78,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/babel__core':
         specifier: ^7.20.5
         version: 7.20.5
@@ -99,6 +102,9 @@ importers:
       eslint:
         specifier: ^10.8.0
         version: 10.8.1(jiti@2.7.0)
+      happy-dom:
+        specifier: ^20.11.6
+        version: 20.11.6
       knip:
         specifier: ^6.32.2
         version: 6.32.2
@@ -117,6 +123,9 @@ importers:
       vite:
         specifier: ^8.2.0
         version: 8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@24.13.3)(happy-dom@20.11.6)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/eslint:
     dependencies:
