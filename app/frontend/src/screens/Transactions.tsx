@@ -28,7 +28,6 @@ import {
   useGetTransactions,
   type TransactionFilters,
 } from '@/http/queries/transactions/useGetTransactions';
-import { monthRange } from '@/utils/dates';
 
 const PAGE_SIZE = 8;
 
@@ -39,7 +38,9 @@ export function Transactions() {
   const [direction, setDirection] = useState<Direction | 'all'>('all');
   const [accountId, setAccountId] = useState('all');
   const [status, setStatus] = useState<TransactionStatus | 'all'>('all');
-  const [month, setMonth] = useState('');
+  // Both ends are inclusive ISO dates, and '' is "unbounded on this side".
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -54,7 +55,6 @@ export function Transactions() {
    * be a 400, and hiding the rule from the user would be worse.
    */
   const singleAccount = accountId !== 'all';
-  const range = month === '' ? undefined : monthRange(month);
 
   const filters: TransactionFilters = {
     page,
@@ -64,8 +64,8 @@ export function Transactions() {
     accountId: singleAccount ? accountId : undefined,
     status: status === 'all' ? undefined : status,
     direction: direction === 'all' ? undefined : direction,
-    from: range?.from,
-    to: range?.to,
+    from: from === '' ? undefined : from,
+    to: to === '' ? undefined : to,
     q: debouncedSearch.trim() === '' ? undefined : debouncedSearch.trim(),
     withRunningBalance: singleAccount ? true : undefined,
   };
@@ -88,7 +88,8 @@ export function Transactions() {
     setDirection('all');
     setAccountId('all');
     setStatus('all');
-    setMonth('');
+    setFrom('');
+    setTo('');
     setSearch('');
     setPage(1);
   };
@@ -147,13 +148,25 @@ export function Transactions() {
         </Select>
 
         <DatePicker
-          mode='month'
-          aria-label='Month'
+          aria-label='From date'
           className='w-[170px]'
-          placeholder='Any month'
-          value={month}
+          placeholder='Any start date'
+          value={from}
+          max={to === '' ? undefined : to}
           onChange={(next) => {
-            setMonth(next ?? '');
+            setFrom(next ?? '');
+            resetToFirstPage();
+          }}
+        />
+
+        <DatePicker
+          aria-label='To date'
+          className='w-[170px]'
+          placeholder='Any end date'
+          value={to}
+          min={from === '' ? undefined : from}
+          onChange={(next) => {
+            setTo(next ?? '');
             resetToFirstPage();
           }}
         />
