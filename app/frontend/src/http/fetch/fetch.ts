@@ -1,4 +1,4 @@
-import type { ApiErrorBody } from '@/http/api-types';
+import { type ApiErrorBody } from '@pfm/contracts';
 
 /**
  * The single fetch wrapper every query and mutation goes through.

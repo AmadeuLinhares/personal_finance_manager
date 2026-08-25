@@ -2,8 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import './index.css';
-import { QueryProvider } from './app/providers/QueryProvider';
 import App from './App.tsx';
+import { QueryProvider } from '@/providers/QueryProvider';
 
 const rootElement = document.getElementById('root');
 

@@ -10,12 +10,19 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Shared test infrastructure only — the harness and the fixtures. It is
+      // deliberately absent from vite.config.ts, so an app file that reaches for
+      // it fails the build instead of shipping a fixture to production.
+      '@test': fileURLToPath(new URL('./test', import.meta.url)),
+    },
   },
   test: {
     // The screens are tested through the DOM they actually render.
     environment: 'happy-dom',
-    include: ['test/**/*.test.tsx'],
+    // Tests live next to what they test, inside the feature that owns it.
+    include: ['src/**/*.test.tsx'],
     setupFiles: ['./test/setup.ts'],
   },
 });

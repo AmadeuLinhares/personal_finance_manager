@@ -1,4 +1,10 @@
-import type { Account, Category, CategoryTotals, ListMeta, Transaction } from '@/http/api-types';
+import {
+  type Account,
+  type Category,
+  type CategoryTotals,
+  type ListMeta,
+  type Transaction,
+} from '@pfm/contracts';
 
 /**
  * Builders, not literals: a fixture that spells out all fourteen fields of an

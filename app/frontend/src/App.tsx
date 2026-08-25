@@ -1,18 +1,15 @@
 import { Notice, Tag } from '@pfm/ui';
 import { useState } from 'react';
 
-import { AppFooter } from './app/AppFooter';
-import { AppHeader } from './app/AppHeader';
-import { BalanceScope } from './app/BalanceScope';
-import { IMPLEMENTED_SCREENS, type Screen } from './app/screens';
-import { ProjectDialog } from './dialogs/ProjectDialog';
-import { ScheduleDialog } from './dialogs/ScheduleDialog';
-import { TransactionDialog } from './dialogs/TransactionDialog';
-import { Overview } from './screens/Overview';
-import { Planning } from './screens/Planning';
-import { Projects } from './screens/Projects';
-import { Reports } from './screens/Reports';
-import { Transactions } from './screens/Transactions';
+import { AppFooter } from '@/components/AppFooter';
+import { AppHeader } from '@/components/AppHeader';
+import { BalanceScope } from '@/components/BalanceScope';
+import { IMPLEMENTED_SCREENS, type Screen } from '@/constants/screens';
+import { Overview } from '@/features/overview';
+import { Planning, ScheduleDialog } from '@/features/planning';
+import { ProjectDialog, Projects } from '@/features/projects';
+import { Reports } from '@/features/reports';
+import { TransactionDialog, Transactions } from '@/features/transactions';
 
 type OpenDialog = 'transaction' | 'schedule' | 'project' | null;
 
