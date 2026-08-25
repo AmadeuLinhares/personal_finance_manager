@@ -17,6 +17,7 @@
     "knip": "knip"
   },
   "dependencies": {
+    "@pfm/contracts": "workspace:*",
     "@pfm/ui": "workspace:*",
     "@tanstack/react-query": "^5.102.0",
     "lucide-react": "^1.33.0",

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    /* Node resolves these imports itself, and it demands the real extension. */
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    /* Load-bearing: the Express API imports this package as plain ESM and Node
+       only strips types, it does not compile them. Anything non-erasable here
+       (an enum, a namespace, a parameter property) would crash the server. */
+    "erasableSyntaxOnly": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src", "eslint.config.js"]
+}
