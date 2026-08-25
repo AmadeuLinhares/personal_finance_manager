@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Classical design system \u2014 React components built on @pfm/tokens and Tailwind.",
+  "description": "Classical design system — React components built on @pfm/tokens and Tailwind.",
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./styles.css"
@@ -31,6 +31,7 @@
     "@pfm/tokens": "workspace:*",
     "@react-input/mask": "^2.0.4",
     "lucide-react": "^1.33.0",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {

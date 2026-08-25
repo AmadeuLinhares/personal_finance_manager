@@ -1,10 +1,17 @@
-import { useRef, useState } from 'react';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceDot,
+  ResponsiveContainer,
+  Tooltip,
+  type TooltipContentProps,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import { cn } from '../lib/cn';
 import { type Currency, formatMoney } from '../lib/format';
-
-const VIEW_W = 480;
-const PAD_X = 10;
 
 export interface TrendPoint {
   /** Short axis label, e.g. `Sep` or `2026-09`. */
@@ -28,13 +35,68 @@ export interface TrendChartProps {
   className?: string;
 }
 
+interface ChartRow {
+  label: string;
+  value: number;
+  /**
+   * The same figure split across two keys. `null` breaks a line, so the solid
+   * and dashed segments never draw over each other; they meet at the seam, which
+   * both keys carry so there is no gap between them.
+   */
+  actual: number | null;
+  forecast: number | null;
+  isForecast: boolean;
+}
+
+/** Clamp an author-supplied seam to a real index. */
+const seamOf = (series: TrendPoint[], actualUpTo: number | undefined): number =>
+  actualUpTo === undefined ? 0 : Math.min(Math.max(actualUpTo, 0), series.length - 1);
+
+/**
+ * Exported for the test: the split is the whole point of this chart, and it is
+ * plain data, so it can be asserted without a layout engine.
+ */
+export function toChartRows(series: TrendPoint[], actualUpTo?: number): ChartRow[] {
+  const seam = seamOf(series, actualUpTo);
+
+  return series.map((point, index) => ({
+    label: point.label,
+    value: point.value,
+    // A one-point solid segment would be an invisible line with a stray dot, so
+    // a seam of 0 means everything is forecast.
+    actual: seam > 0 && index <= seam ? point.value : null,
+    forecast: index >= seam ? point.value : null,
+    isForecast: index > seam,
+  }));
+}
+
+const ChartTooltip = ({
+  active,
+  payload,
+  currency,
+}: TooltipContentProps & { currency: Currency }) => {
+  const row = payload[0]?.payload as ChartRow | undefined;
+  if (!active || row === undefined) return null;
+
+  return (
+    <div className='rounded-md border border-divider bg-bg px-2 py-1 text-label tabular-nums shadow-md'>
+      {row.label} · {formatMoney(row.value, currency)}
+      {row.isForecast ? <span className='text-ink/55'> · forecast</span> : null}
+    </div>
+  );
+};
+
 /**
  * The balance projection line. One series, so no legend: the heading names it.
  *
  * The line is accent-600 rather than the ramp's base 500 — 500 sits at 2.6:1
  * against this ground, under the 3:1 a thin mark needs. The endpoint carries a
  * visible value, and the whole series is repeated as a table for screen readers,
- * so identity and magnitude never depend on the line alone.
+ * so identity and magnitude never depend on the line alone. That table is the
+ * accessible representation, which is why the plot itself is `aria-hidden`.
+ *
+ * Colors come from CSS variables rather than the tokens module, so the chart
+ * re-themes without a re-render.
  */
 export function TrendChart({
   series,
@@ -44,121 +106,69 @@ export function TrendChart({
   label,
   className,
 }: TrendChartProps) {
-  const wrapper = useRef<HTMLDivElement>(null);
-  const [hover, setHover] = useState<number | null>(null);
-
   if (series.length < 2) return null;
 
-  const values = series.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const top = 16;
-  const bottom = height - 28;
-
-  const x = (index: number) => PAD_X + (index * (VIEW_W - PAD_X * 2)) / (series.length - 1);
-  const y = (value: number) => bottom - ((value - min) / span) * (bottom - top);
-
-  const points = series.map((point, index) => ({ ...point, cx: x(index), cy: y(point.value) }));
-  const seam = actualUpTo === undefined ? 0 : Math.min(Math.max(actualUpTo, 0), points.length - 1);
-  const line = (from: number, to: number) =>
-    points
-      .slice(from, to + 1)
-      .map((point) => `${String(point.cx)},${String(point.cy)}`)
-      .join(' ');
-
-  const onMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const box = wrapper.current?.getBoundingClientRect();
-    if (!box || box.width === 0) return;
-    const ratio = (event.clientX - box.left) / box.width;
-    const index = Math.round(ratio * (series.length - 1));
-    setHover(Math.min(Math.max(index, 0), series.length - 1));
-  };
-
-  const active = hover === null ? null : points[hover];
-  const last = points[points.length - 1];
+  const rows = toChartRows(series, actualUpTo);
+  const seam = seamOf(series, actualUpTo);
+  const last = series[series.length - 1];
 
   return (
     <div className={cn('relative', className)}>
-      <div
-        ref={wrapper}
-        onPointerMove={onMove}
-        onPointerLeave={() => {
-          setHover(null);
-        }}
-      >
-        <svg
-          viewBox={`0 0 ${String(VIEW_W)} ${String(height)}`}
-          className='block w-full'
-          role='img'
-          aria-label={label}
-        >
-          {[top, (top + bottom) / 2, bottom].map((gridY) => (
-            <line
-              key={gridY}
-              x1={0}
-              x2={VIEW_W}
-              y1={gridY}
-              y2={gridY}
-              stroke='var(--color-divider)'
-              strokeWidth={1}
+      <div style={{ height }} aria-hidden>
+        <ResponsiveContainer width='100%' height='100%'>
+          <LineChart data={rows} margin={{ top: 16, right: 10, bottom: 0, left: 10 }}>
+            <CartesianGrid vertical={false} stroke='var(--color-divider)' />
+            <XAxis
+              dataKey='label'
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: 'var(--color-ink)', fillOpacity: 0.55, fontSize: 10 }}
             />
-          ))}
-
-          {seam > 0 ? (
-            <polyline
-              points={line(0, seam)}
-              fill='none'
+            {/* Hidden, but it still sets the scale: the original chart mapped the
+                series' own min and max to the plot's edges, and so does this. */}
+            <YAxis hide domain={['dataMin', 'dataMax']} />
+            <Tooltip
+              content={(props: TooltipContentProps) => (
+                <ChartTooltip {...props} currency={currency} />
+              )}
+              cursor={{ stroke: 'var(--color-accent-400)', strokeWidth: 1 }}
+              isAnimationActive={false}
+            />
+            <Line
+              type='linear'
+              dataKey='actual'
+              name={label}
               stroke='var(--color-accent-600)'
               strokeWidth={2}
               strokeLinejoin='round'
+              dot={false}
+              activeDot={{ r: 4.5, stroke: 'var(--color-bg)', strokeWidth: 2 }}
+              connectNulls={false}
+              isAnimationActive={false}
             />
-          ) : null}
-          <polyline
-            points={line(seam, points.length - 1)}
-            fill='none'
-            stroke='var(--color-accent-600)'
-            strokeWidth={2}
-            strokeDasharray='5 4'
-            strokeLinejoin='round'
-          />
-
-          {/* The seam between what happened and what is only committed. */}
-          <circle cx={points[seam].cx} cy={points[seam].cy} r={4} fill='var(--color-accent-600)' />
-
-          {active ? (
-            <>
-              <line
-                x1={active.cx}
-                x2={active.cx}
-                y1={top - 8}
-                y2={bottom + 8}
-                stroke='var(--color-accent-400)'
-                strokeWidth={1}
-              />
-              <circle
-                cx={active.cx}
-                cy={active.cy}
-                r={4.5}
-                fill='var(--color-accent-600)'
-                stroke='var(--color-bg)'
-                strokeWidth={2}
-              />
-            </>
-          ) : null}
-
-          {points.map((point) => (
-            <text
-              key={point.label}
-              x={point.cx}
-              y={height - 8}
-              textAnchor='middle'
-              className='fill-ink/55 text-[10px]'
-            >
-              {point.label}
-            </text>
-          ))}
-        </svg>
+            <Line
+              type='linear'
+              dataKey='forecast'
+              name={label}
+              stroke='var(--color-accent-600)'
+              strokeWidth={2}
+              strokeDasharray='5 4'
+              strokeLinejoin='round'
+              dot={false}
+              activeDot={{ r: 4.5, stroke: 'var(--color-bg)', strokeWidth: 2 }}
+              connectNulls={false}
+              isAnimationActive={false}
+            />
+            {/* The seam between what happened and what is only committed. */}
+            <ReferenceDot
+              x={rows[seam].label}
+              y={rows[seam].value}
+              r={4}
+              fill='var(--color-accent-600)'
+              stroke='none'
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
       {/* A visible value on the endpoint: the line alone is under 3:1, so the
@@ -169,25 +179,15 @@ export function TrendChart({
         </span>
       </div>
 
-      {active ? (
-        <div
-          className='pointer-events-none absolute -top-1 rounded-md border border-divider bg-bg px-2 py-1 text-label tabular-nums shadow-md'
-          style={{ left: `${String((active.cx / VIEW_W) * 100)}%`, transform: 'translateX(-50%)' }}
-        >
-          {active.label} · {formatMoney(active.value, currency)}
-          {hover !== null && hover > seam ? <span className='text-ink/55'> · forecast</span> : null}
-        </div>
-      ) : null}
-
       <table className='sr-only'>
         <caption>{label}</caption>
         <tbody>
-          {series.map((point, index) => (
-            <tr key={point.label}>
-              <th scope='row'>{point.label}</th>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <th scope='row'>{row.label}</th>
               <td>
-                {formatMoney(point.value, currency)}
-                {index > seam ? ' (forecast)' : ''}
+                {formatMoney(row.value, currency)}
+                {row.isForecast ? ' (forecast)' : ''}
               </td>
             </tr>
           ))}
