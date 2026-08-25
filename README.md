@@ -25,7 +25,7 @@ by accident and no CORS is involved. One `Ctrl-C` stops both.
 
 |                                               |                                                        |
 | --------------------------------------------- | ------------------------------------------------------ |
-| `pnpm test`                                   | 111 tests — 52 API, 31 design system, 28 screens       |
+| `pnpm test`                                   | 112 tests — 52 API, 32 design system, 28 screens       |
 | `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                 |
 | `pnpm storybook`                              | the design system in isolation                         |
 | `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions) |
@@ -76,11 +76,46 @@ with the API's validation errors landing under the field that caused them.
 
 ### Server state is not client state, and the split is enforced by where code lives
 
-Everything the API owns goes through TanStack Query in `src/http/`: one hook per
-endpoint, filters typed, query keys carrying those filters. Everything the _user_
-owns — which month, which currency, which row is mid-flight — is `useState` in
-the screen. There is no store in between, because there is nothing to put in one:
-after the server state moves out, what is left is small and local.
+Everything the API owns goes through TanStack Query: one hook per endpoint,
+filters typed, query keys carrying those filters. Which folder that hook lives in
+is the rest of the argument. A request only one feature asks for sits in that
+feature's own `http/`, next to the components, hooks and pure logic of the screen
+that asks for it, and next to that screen's test. `src/http/` keeps what is
+genuinely shared: the fetch wrapper, and the two endpoints more than one feature
+reads — accounts and categories.
+
+What the hook does **not** own is the contract. That lives in
+[`@pfm/contracts`](packages/contracts) and both apps import it: the shapes, the
+request bodies, the routes, and every closed set of values the API validates
+against. See that package's README for where the line falls.
+
+### The contract is declared once, and the API is what proves it
+
+The client used to carry a copy of the contract the API ships, and the API
+carried its own copy of the same vocabulary as runtime arrays in
+`src/lib/validate.js`. Two declarations of one truth, in two languages, with
+nothing to make them disagree out loud.
+
+Now each value set is an array first and a type second:
+
+```ts
+export const TRANSACTION_STATUSES = ['posted', 'pending'] as const;
+export type TransactionStatus = (typeof TRANSACTION_STATUSES)[number];
+```
+
+The API validates with the array — `z.enum(TRANSACTION_STATUSES)`, which is why
+its 422 reads _"Expected 'posted' | 'pending'"_ — and the client types with the
+union. Adding a status is one edit, and there is no second place to forget.
+
+The API is plain JavaScript and compiles nothing, so this only works because
+Node ≥ 22.18 strips types on import. The package ships source for that reason,
+like `@pfm/ui`, and its tsconfig sets `erasableSyntaxOnly` so a shape that cannot
+survive stripping fails the type-check instead of the server.
+
+Everything the _user_ owns — which month, which currency, which row is
+mid-flight — is `useState` in the screen. There is no store in between, because
+there is nothing to put in one: after the server state moves out, what is left is
+small and local.
 
 **Every filter is a query param.** Nothing is filtered, sorted or paged in the
 client. A client-side filter over one page of results is a lie about the other
