@@ -65,6 +65,7 @@ composition of those three rather than a fifth thing to build.
 | **Reports**      | 3          | Expenses by category for a month, against budget, with a leaf/rolled-up toggle and the excluded rows named                    |
 | **Planning**     | 4          | Upcoming bills and income with post/skip/undo per date, a free date window driving both panels, and the actual/forecast seam  |
 | _the header_     | 2          | "Balance as of" any date, on every screen                                                                                     |
+| _the URL_        | —          | `?screen=` holds which screen you are on, so a refresh comes back to it and the back button works                             |
 
 User story 2 has no screen of its own on purpose. A balance is not a
 destination — it is the number every other screen is read against, so it lives
@@ -93,7 +94,7 @@ with the API's validation errors landing under the field that caused them.
 | **User story 5 — Projects**          | Another aggregate over the same ledger, and `GET /projects` already embeds the summary, so "implementing" it would be mostly rendering. High screen cost, low argument.                |
 | **The Projects layout**              | It existed, unwired, over fixtures. I deleted it rather than ship it behind a "not implemented" banner: four screens that all work read better than five where one is a promise.       |
 | **CRUD for accounts and categories** | Repeats the form the transaction dialog already demonstrates. The interesting case is `DELETE /categories/:id` with `reassignTo` vs `force`, and that is a conversation, not a screen. |
-| **A router**                         | Screens are local state. Nothing deep-links yet; this is the first thing I would add, and it is a contained change.                                                                    |
+| **A router**                         | The screen lives in `?screen=`, which survives a refresh and gives back a history entry. A router earns its dependency when filters go in the URL too, not before.                     |
 | **Auth**                             | The brief says to skip it.                                                                                                                                                             |
 
 ---
@@ -413,10 +414,11 @@ CLS and TBT are 55 of the performance score.
 
 Two limits worth naming out loud:
 
-- **Only the Overview is audited.** Screens are local state, not routes, so there
-  is no URL for Transactions, Reports or Planning to point Lighthouse at. That is
-  the most concrete cost of having no router yet, and the audit gets wider the day
-  there is one.
+- **Only the Overview is audited, for now.** Until the screen went into the URL
+  there was nothing to point Lighthouse at but the default one. `?screen=reports`
+  is a real address now, so widening the audit to all four is a config change
+  rather than a refactor — and the three screens it would newly cover have never
+  been audited, which is a reason to expect it to find something.
 - **Desktop preset.** A ledger is read at a desk. Mobile throttling would produce
   a worse number that says less about how this app is used — that is a choice, so
   it is written down rather than buried in a config file.
@@ -497,11 +499,12 @@ Ask me about any file in here.
 
 ## What I would do next
 
-1. **A router.** Screens are local state today. Deep links, back-button
-   behaviour, and filters in the URL — the last one is what makes a support
-   conversation possible ("send me the link you're looking at"). It also widens
-   the Lighthouse audit from one screen to four, which is the second reason to
-   want it.
+1. **Filters in the URL, then a router if it earns it.** The screen is already
+   there — `?screen=planning` survives a refresh and leaves a history entry, in
+   ~40 lines and no dependency. What is still missing is the part that makes a
+   support conversation possible: "send me the link you're looking at" only works
+   once the month, the account and the date range are in the URL too. A router
+   becomes worth its weight at that point, not before.
 2. **Take the performance score apart.** 83, and not because of the bundle — FCP
    0.6 s, LCP 1.2 s and Speed Index 1.3 s are all fine. It is CLS 0.32 and 580 ms
    of blocking time, 55 of the score's weight between them. The report does not

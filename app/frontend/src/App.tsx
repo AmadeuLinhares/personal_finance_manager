@@ -3,17 +3,17 @@ import { useState } from 'react';
 import { AppFooter } from '@/components/AppFooter';
 import { AppHeader } from '@/components/AppHeader';
 import { BalanceScope } from '@/components/BalanceScope';
-import { type Screen } from '@/constants/screens';
 import { Overview } from '@/features/overview';
 import { Planning, ScheduleDialog } from '@/features/planning';
 import { Reports } from '@/features/reports';
 import { TransactionDialog, Transactions } from '@/features/transactions';
+import { useScreenParam } from '@/hooks/useScreenParam';
 import { today } from '@/utils/window';
 
 type OpenDialog = 'transaction' | 'schedule' | null;
 
 function App() {
-  const [screen, setScreen] = useState<Screen>('Overview');
+  const [screen, setScreen] = useScreenParam('Overview');
   const [asOf, setAsOf] = useState(today);
   const [dialog, setDialog] = useState<OpenDialog>(null);
   const closeDialog = () => {

@@ -1,5 +1,5 @@
 import { formatMoney, toIsoDate } from '@pfm/ui';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { expect, test } from 'vitest';
 
 import App from './App';
@@ -137,6 +137,70 @@ test('the nav moves between the four screens', async () => {
 
   fireEvent.click(screen.getByRole('button', { name: 'Overview' }));
   expect(screen.getByRole('heading', { name: 'Overview' })).toBeTruthy();
+});
+
+test('the screen is in the URL, so a refresh comes back to the same one', async () => {
+  renderApp();
+
+  await waitFor(() => {
+    expect(new URLSearchParams(window.location.search).get('screen')).toBe('overview');
+  });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Planning' }));
+  expect(new URLSearchParams(window.location.search).get('screen')).toBe('planning');
+});
+
+test('moving between screens leaves history behind, so back has somewhere to go', async () => {
+  renderApp();
+  await waitFor(() => {
+    expect(new URLSearchParams(window.location.search).get('screen')).toBe('overview');
+  });
+
+  const stamped = window.history.length;
+  fireEvent.click(screen.getByRole('button', { name: 'Reports' }));
+  expect(window.history.length).toBe(stamped + 1);
+});
+
+test('a reload lands on the screen the URL names, not on the default', async () => {
+  window.history.replaceState(null, '', '/?screen=reports');
+  renderApp();
+
+  expect(screen.getByRole('heading', { name: 'Expenses by category' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Reports' }).getAttribute('aria-current')).toBe('page');
+  await waitFor(() => {
+    expect(screen.queryByRole('heading', { name: 'Overview' })).toBeNull();
+  });
+});
+
+test('a screen nobody has falls back rather than rendering nothing', () => {
+  window.history.replaceState(null, '', '/?screen=projects');
+  renderApp();
+
+  expect(screen.getByRole('heading', { name: 'Overview' })).toBeTruthy();
+});
+
+test('back goes to the screen you came from', async () => {
+  renderApp();
+  await screen.findByText('Everyday Chequing');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Planning' }));
+  expect(screen.getByRole('heading', { name: /Bills, income/ })).toBeTruthy();
+
+  window.history.replaceState(null, '', '/?screen=overview');
+  fireEvent(window, new Event('popstate'));
+
+  expect(screen.getByRole('heading', { name: 'Overview' })).toBeTruthy();
+});
+
+test('the screen param does not trample the other params it shares the URL with', () => {
+  window.history.replaceState(null, '', '/?screen=overview&keep=me');
+  renderApp();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Reports' }));
+
+  const params = new URLSearchParams(window.location.search);
+  expect(params.get('screen')).toBe('reports');
+  expect(params.get('keep')).toBe('me');
 });
 
 test('Projects is not in the navigation at all', () => {

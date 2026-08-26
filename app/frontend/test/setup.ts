@@ -6,3 +6,7 @@ afterEach(cleanup);
 afterEach(() => {
   vi.unstubAllGlobals();
 });
+
+afterEach(() => {
+  window.history.replaceState(null, '', '/');
+});
