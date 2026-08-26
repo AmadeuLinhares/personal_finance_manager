@@ -15,24 +15,22 @@ import { CategoryBars } from './components/CategoryBars';
 import { MonthTotals } from './components/MonthTotals';
 import { ReportControls } from './components/ReportControls';
 import { type ReportCurrency } from './constants';
-import { useGetMonthlyExpenses } from './http/queries/useGetMonthlyExpenses';
 import { toCategoryRows } from './utils/categoryRows';
 import { describeExcluded } from './utils/excluded';
 import { useGetCategories } from '@/http/queries/categories/useGetCategories';
+import { useGetMonthlyExpenses } from '@/http/queries/reports/useGetMonthlyExpenses';
 
 export function Reports() {
   const [month, setMonth] = useState(() => toIsoMonth(new Date()));
   const [currency, setCurrency] = useState<ReportCurrency>('CAD');
   const [rolledUp, setRolledUp] = useState(false);
 
-  // Only for the parent names: the report knows `parentId`, never the label.
   const categoriesQuery = useGetCategories();
   const categories = categoriesQuery.data?.data;
   const canRollUp = categories !== undefined;
 
   const { data, error, isPending, isError, isFetching, refetch } = useGetMonthlyExpenses(
     { from: month, to: month, currency },
-    // Changing month replaces the numbers; it should not blank the page first.
     { placeholderData: (previous) => previous },
   );
 
@@ -97,10 +95,6 @@ export function Reports() {
       ) : (
         <div className='grid gap-8 lg:grid-cols-[1.4fr_1fr]' aria-busy={isFetching}>
           <section>
-            {/*
-              `aria-busy` alone announces nothing, and every control on this
-              screen replaces the whole report. This is the line that says so.
-            */}
             <p className='mb-3 text-ui-sm text-ink/55' role='status'>
               {`${formatMonth(month)} · ${String(rows.length)} ${
                 rows.length === 1 ? 'category' : 'categories'

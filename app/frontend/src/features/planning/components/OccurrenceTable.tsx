@@ -2,11 +2,10 @@ import { type Occurrence } from '@pfm/contracts';
 import { Table, Th, VisuallyHidden } from '@pfm/ui';
 
 import { OccurrenceRow } from './OccurrenceRow';
-import { occurrenceKey } from '../utils/occurrence';
+import { occurrenceKey } from '@/utils/occurrence';
 
 export interface OccurrenceTableProps {
   occurrences: Occurrence[];
-  /** The row currently in flight, keyed by rule and date. */
   pendingKey: string | null;
   isFetching: boolean;
   onPost: (occurrence: Occurrence) => void;

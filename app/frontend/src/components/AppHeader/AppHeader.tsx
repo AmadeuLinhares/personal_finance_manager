@@ -1,13 +1,12 @@
-import { Button, VisuallyHidden, cn } from '@pfm/ui';
+import { Button, cn } from '@pfm/ui';
 import { Plus } from 'lucide-react';
 import { type ReactNode } from 'react';
 
-import { IMPLEMENTED_SCREENS, type Screen, SCREENS } from '@/constants/screens';
+import { type Screen, SCREENS } from '@/constants/screens';
 
 export interface AppHeaderProps {
   screen: Screen;
   onScreenChange: (screen: Screen) => void;
-  /** The balance line. A node, not a string: the header renders it, it does not own it. */
   scope: ReactNode;
   onNewTransaction: () => void;
 }
@@ -24,7 +23,6 @@ export function AppHeader({ screen, onScreenChange, scope, onNewTransaction }: A
         <nav className='flex flex-1 gap-6' aria-label='Primary'>
           {SCREENS.map((item) => {
             const current = item === screen;
-            const wired = IMPLEMENTED_SCREENS.includes(item);
             return (
               <button
                 key={item}
@@ -41,14 +39,6 @@ export function AppHeader({ screen, onScreenChange, scope, onNewTransaction }: A
                 )}
               >
                 {item}
-                {wired ? null : (
-                  <>
-                    <span className='ml-1 align-super text-[9px] text-ink/35' aria-hidden='true'>
-                      ●
-                    </span>
-                    <VisuallyHidden> (not implemented)</VisuallyHidden>
-                  </>
-                )}
               </button>
             );
           })}

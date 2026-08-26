@@ -3,8 +3,9 @@
 A React + TypeScript client for the [Personal Finance Manager challenge](docs/CHALLENGE.md),
 built on the in-memory API that ships with this repo.
 
-Four of the five user stories, in three screens, on a design system built here
-rather than adopted. The reasoning for every one of those choices is below.
+Four of the five user stories, in three screens and an overview that composes
+them, on a design system built here rather than adopted. The reasoning for every
+one of those choices is below.
 
 ---
 
@@ -25,7 +26,7 @@ by accident and no CORS is involved. One `Ctrl-C` stops both.
 
 |                                               |                                                        |
 | --------------------------------------------- | ------------------------------------------------------ |
-| `pnpm test`                                   | 112 tests — 52 API, 32 design system, 28 screens       |
+| `pnpm test`                                   | 119 tests — 52 API, 32 design system, 35 screens       |
 | `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                 |
 | `pnpm storybook`                              | the design system in isolation                         |
 | `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions) |
@@ -43,10 +44,13 @@ curl -X POST localhost:4000/api/dev/settings -H 'content-type: application/json'
 ## What I built
 
 The brief says five screens rushed are worth less than three done properly, and
-that the user stories are a menu rather than a checklist. I took it literally.
+that the user stories are a menu rather than a checklist. I took it literally:
+three screens carry the four user stories I chose, and the fourth is a
+composition of those three rather than a fifth thing to build.
 
 | Screen           | User story | What it does                                                                                                                  |
 | ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Overview**     | —          | A preview of each of the three below, read against the header's date. It owns no data: every request on it is one of theirs   |
 | **Transactions** | 1          | Paged ledger; filters for account, status, direction, full date range and search, all as query params; running balance column |
 | **Reports**      | 3          | Expenses by category for a month, against budget, with a leaf/rolled-up toggle and the excluded rows named                    |
 | **Planning**     | 4          | Upcoming bills and income with post/skip/undo per date, and a balance projection with the actual/forecast seam drawn          |
@@ -55,7 +59,19 @@ that the user stories are a menu rather than a checklist. I took it literally.
 User story 2 has no screen of its own on purpose. A balance is not a
 destination — it is the number every other screen is read against, so it lives
 in the header, where changing the date changes the frame around whatever you are
-already looking at.
+already looking at. The Overview is the clearest case of that: the date in the
+header is the date its account cards are computed on, because both ask for it
+with the same filters and therefore share one request rather than showing two
+dates' numbers on one page.
+
+**The Overview is a composition, not a fifth source of truth.** Each of its four
+panels asks exactly the question the screen it previews asks — same filters, same
+query key — so opening that screen from here is a cache hit rather than a round
+trip. It is also why three query hooks live in `src/http/queries/` and not in a
+feature: an overview is by definition a second reader of every other screen's
+data. Each panel carries its own loading, error and empty state, because four
+requests are four things that can fail and a screen that blanks because one of
+them did is worse than no screen.
 
 Creating things works too: a transaction, a transfer, and a scheduled item, each
 with the API's validation errors landing under the field that caused them.
@@ -65,7 +81,7 @@ with the API's validation errors landing under the field that caused them.
 |                                      | Why                                                                                                                                                                                    |
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **User story 5 — Projects**          | Another aggregate over the same ledger, and `GET /projects` already embeds the summary, so "implementing" it would be mostly rendering. High screen cost, low argument.                |
-| **Overview and Projects screens**    | Still layout over fixtures. They are marked in the nav and carry a banner saying so — a half-wired screen that looks finished is worse than one that admits what it is.                |
+| **The Projects layout**              | It existed, unwired, over fixtures. I deleted it rather than ship it behind a "not implemented" banner: four screens that all work read better than five where one is a promise.       |
 | **CRUD for accounts and categories** | Repeats the form the transaction dialog already demonstrates. The interesting case is `DELETE /categories/:id` with `reassignTo` vs `force`, and that is a conversation, not a screen. |
 | **A router**                         | Screens are local state. Nothing deep-links yet; this is the first thing I would add, and it is a contained change.                                                                    |
 | **Auth**                             | The brief says to skip it.                                                                                                                                                             |
@@ -81,8 +97,10 @@ filters typed, query keys carrying those filters. Which folder that hook lives i
 is the rest of the argument. A request only one feature asks for sits in that
 feature's own `http/`, next to the components, hooks and pure logic of the screen
 that asks for it, and next to that screen's test. `src/http/` keeps what is
-genuinely shared: the fetch wrapper, and the two endpoints more than one feature
-reads — accounts and categories.
+genuinely shared: the fetch wrapper, and the five endpoints more than one feature
+reads — accounts and categories, plus the monthly report, the occurrences and the
+projection, all three of which the Overview reads as well as the screen that owns
+them.
 
 What the hook does **not** own is the contract. That lives in
 [`@pfm/contracts`](packages/contracts) and both apps import it: the shapes, the
@@ -247,7 +265,7 @@ story, which is where contrast and landmark problems surface. Known gaps: no
 arrow-key navigation inside the calendar grid, and no axe run over the assembled
 screens — what the screen tests assert is roles and accessible names, not colour.
 
-**Testing — what, and why that.** 28 screen tests, and the seam is `fetch`, not
+**Testing — what, and why that.** 35 screen tests, and the seam is `fetch`, not
 the query hooks. A test that mocks `useGetTransactions` proves the component can
 render its own mock; it would pass with the filters wired to nothing. Stubbing
 the transport keeps the query keys, the param building and the error mapping

@@ -7,21 +7,36 @@ The decisions — what is built, what is left out, where derived values live, wh
 each mutation invalidates — are in the [root README](../../README.md). This file
 is the map of the folder.
 
+Organised by feature. The rule that decides where a file goes is ownership: if
+one screen asks for it, it lives in that screen's folder; if more than one does,
+it moves up. Nothing is shared speculatively.
+
 ```text
 src/
-  app/        the shell: header, footer, screen registry, query provider
-  screens/    one file per screen; state that is the user's lives here
-  dialogs/    the three forms
-  http/       everything the API owns
-    queries/    one hook per GET, filters typed, filters inside the query key
-    mutations/  one hook per write, each with its own invalidation set
-    fetch/      the single wrapper; returns a union, never throws
-    routes.ts   every URL, in one place
-    api-types.ts  copied from docs/api-types.d.ts — the server wins on conflict
-  utils/      query-string building, API error → form error
-  mock/       fixtures for the two screens that are still layout only
-test/         screen tests; the seam is fetch, not the query hooks
+  App.tsx       the shell: which screen, the header's "balance as of", the dialogs
+  components/   shared components only — AppHeader, AppFooter, BalanceScope
+  constants/    the screen registry
+  features/     one folder per screen, plus everything only that screen uses
+    overview/     four panels over the other three screens' queries; owns no data
+    transactions/
+    reports/
+    planning/
+      components/   the screen's presentational pieces, and its dialog
+      hooks/        the state that is the user's
+      http/         requests only this feature asks for
+      utils/        its pure logic
+      *.test.tsx    next to what it tests
+  http/         what more than one feature reads
+    fetch/        the single wrapper; returns a union, never throws
+    queries/      one hook per GET, filters typed and inside the query key
+  providers/    the QueryClient and its defaults
+  utils/        calendar windows, the projection seam, query strings, form errors
+test/           harness, fixtures, setup — shared infrastructure, via @test/*
 ```
+
+The wire types, the routes and every closed set of values the API validates
+against are not here at all: they are in [`@pfm/contracts`](../../packages/contracts),
+which the API imports too.
 
 ```bash
 pnpm dev          # this package alone, on :5173, proxying /api to :4000

@@ -11,11 +11,6 @@ import { fetchData, FetchError } from '@/http/fetch/fetch';
 
 type Response = Single<ScheduledItem>;
 
-/**
- * Skipping writes no transaction, so it invalidates far less than posting does:
- * the ledger, the balances and the reports cannot have changed. Only the
- * occurrence's own status and the forecast that counted it move.
- */
 const useSkipMutation = (
   endpoint: (id: string) => string,
 ): UseMutationResult<Response, FetchError, SkipOccurrenceVariables> => {
@@ -43,8 +38,6 @@ const useSkipMutation = (
   });
 };
 
-/** Dismiss one date without touching the rule behind it. */
 export const useSkipOccurrence = () => useSkipMutation(routes.scheduledItems.skip);
 
-/** Put a skipped date back into the forecast. */
 export const useUnskipOccurrence = () => useSkipMutation(routes.scheduledItems.unskip);

@@ -27,8 +27,6 @@ export const useCreateScheduledItem = () => {
       throw new FetchError(resp.data);
     },
     onSuccess: async () => {
-      // A new rule generates dates immediately, so the forecast changes with it.
-      // The ledger does not: nothing has been posted yet.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['scheduled-items'] }),
         queryClient.invalidateQueries({ queryKey: ['projections'] }),

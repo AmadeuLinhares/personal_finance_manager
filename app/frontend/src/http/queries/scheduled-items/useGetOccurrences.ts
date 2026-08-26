@@ -18,7 +18,6 @@ export const useGetOccurrences = (
   options?: OccurrencesQueryOptions,
 ) => {
   return useQuery<ResponseOccurrences, FetchError, ResponseOccurrences, OccurrencesQueryKey>({
-    // The `scheduled-items` prefix is what posting and skipping invalidate.
     queryKey: ['scheduled-items', 'occurrences', filters],
     queryFn: async () => {
       const resp = await fetchData<undefined, ResponseOccurrences>({

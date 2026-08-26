@@ -1,5 +1,6 @@
 import { formatDate, formatMoney, toIsoDate } from '@pfm/ui';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { expect, test } from 'vitest';
 
 import { BalanceScope } from './BalanceScope';
@@ -21,12 +22,17 @@ const today = new Date();
 const dayOfThisMonth = (day: number) => new Date(today.getFullYear(), today.getMonth(), day);
 const dayLabel = (date: Date) => formatDate(toIsoDate(date), { year: true });
 
+function Shell() {
+  const [asOf, setAsOf] = useState(toIsoDate(today));
+  return <BalanceScope value={asOf} onChange={setAsOf} />;
+}
+
 function renderScope(overrides: Parameters<typeof stubFetch>[0] = {}) {
   const stub = stubFetch({
     '/accounts': () => ({ body: balances(4218420) }),
     ...overrides,
   });
-  renderScreen(<BalanceScope />);
+  renderScreen(<Shell />);
   return stub;
 }
 
@@ -49,7 +55,6 @@ test('a past date is a new request, not a client-side recalculation', async () =
   fireEvent.click(screen.getByRole('button', { name: dayLabel(first) }));
 
   await waitFor(() => {
-    // Balances are derived from the whole ledger; only the server has it.
     expect(stub.lastTo('/accounts')?.params.get('asOf')).toBe(toIsoDate(first));
   });
 });

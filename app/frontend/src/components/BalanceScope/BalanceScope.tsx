@@ -1,25 +1,15 @@
-import { DatePicker, Money, VisuallyHidden, toIsoDate } from '@pfm/ui';
-import { useState } from 'react';
+import { DatePicker, Money, VisuallyHidden } from '@pfm/ui';
 
 import { useGetAccounts } from '@/http/queries/accounts/useGetAccounts';
+import { today } from '@/utils/window';
 
-/**
- * "The balance", and the date it is the balance on.
- *
- * This is user story 2, and it lives in the header rather than on a screen of
- * its own because a balance is not a destination — it is the number every other
- * screen is read against.
- *
- * Balances are derived server-side from the whole ledger, so asking for a past
- * date is the same code path as asking for today. Nothing is recomputed here,
- * and `asOf` is part of the query key so yesterday's answer never overwrites
- * today's in the cache.
- */
-export function BalanceScope() {
-  const today = toIsoDate(new Date());
-  const [asOf, setAsOf] = useState(today);
+export interface BalanceScopeProps {
+  value: string;
+  onChange: (asOf: string) => void;
+}
 
-  const { data, isPending, isError } = useGetAccounts({ asOf, includeBalances: true });
+export function BalanceScope({ value, onChange }: BalanceScopeProps) {
+  const { data, isPending, isError } = useGetAccounts({ asOf: value, includeBalances: true });
 
   const cad = data?.meta.totalsByCurrency.CAD;
 
@@ -30,11 +20,10 @@ export function BalanceScope() {
       <DatePicker
         aria-label='Balance as of'
         className='w-[150px]'
-        max={today}
-        value={asOf}
+        max={today()}
+        value={value}
         onChange={(next) => {
-          // Clearing means "now" — there is no such thing as no date here.
-          setAsOf(next ?? today);
+          onChange(next ?? today());
         }}
       />
 
@@ -48,7 +37,6 @@ export function BalanceScope() {
         ) : (
           <>
             <Money minorUnits={cad.available} colorInflow={false} className='text-ink' />
-            {/* Two currencies are never summed: there are no FX rates here. */}
             <VisuallyHidden>
               {` available across ${String(cad.accountCount)} CAD accounts, pending included`}
             </VisuallyHidden>

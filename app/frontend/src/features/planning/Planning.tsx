@@ -17,9 +17,9 @@ import { useState } from 'react';
 import { OccurrenceTable } from './components/OccurrenceTable';
 import { ProjectionPanel } from './components/ProjectionPanel';
 import { useOccurrenceActions } from './hooks/useOccurrenceActions';
-import { useGetBudgetProjection } from './http/queries/useGetBudgetProjection';
-import { useGetOccurrences } from './http/queries/useGetOccurrences';
-import { endOfMonthsAhead, startOfThisMonth } from './utils/window';
+import { useGetBudgetProjection } from '@/http/queries/projections/useGetBudgetProjection';
+import { useGetOccurrences } from '@/http/queries/scheduled-items/useGetOccurrences';
+import { endOfMonthsAhead, startOfThisMonth } from '@/utils/window';
 
 const HORIZONS = [3, 6] as const;
 
