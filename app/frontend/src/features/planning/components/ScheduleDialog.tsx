@@ -146,7 +146,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
           </Button>
           <Button
             variant='primary'
-            disabled={isSaving || accountsQuery.isPending}
+            disabled={isSaving || accountsQuery.isPending || accountsQuery.isError}
             onClick={() => {
               void handleSubmit(onSubmit)();
             }}

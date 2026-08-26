@@ -33,13 +33,18 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 export function formatDate(isoDate: string, options: { year?: boolean } = {}): string {
   const [year, month, day] = isoDate.split('-');
   if (!year || !month || !day) return isoDate;
-  const label = `${String(Number(day))} ${MONTHS[Number(month) - 1] ?? month}`;
+  const dayNumber = Number(day);
+  const monthNumber = Number(month);
+  if (!Number.isInteger(dayNumber) || !Number.isInteger(monthNumber)) return isoDate;
+  const label = `${String(dayNumber)} ${MONTHS[monthNumber - 1] ?? month}`;
   return options.year ? `${label} ${year}` : label;
 }
 
 export function formatMonth(isoMonth: string): string {
   const [year, month] = isoMonth.split('-');
   if (!year || !month) return isoMonth;
+  const monthNumber = Number(month);
+  if (!Number.isInteger(monthNumber)) return isoMonth;
   const full = [
     'January',
     'February',
@@ -54,7 +59,7 @@ export function formatMonth(isoMonth: string): string {
     'November',
     'December',
   ];
-  return `${full[Number(month) - 1] ?? month} ${year}`;
+  return `${full[monthNumber - 1] ?? month} ${year}`;
 }
 
 export function isBefore(a: string, b: string): boolean {

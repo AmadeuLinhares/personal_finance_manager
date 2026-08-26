@@ -162,7 +162,12 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
           </Button>
           <Button
             variant='primary'
-            disabled={currencyMismatch === true || isSaving || accountsQuery.isPending}
+            disabled={
+              currencyMismatch === true ||
+              isSaving ||
+              accountsQuery.isPending ||
+              accountsQuery.isError
+            }
             onClick={() => {
               void handleSubmit(onSubmit)();
             }}
