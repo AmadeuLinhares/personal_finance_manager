@@ -406,19 +406,44 @@ cannot fail is decoration.
 
 I used Claude Code throughout, and I own all of it.
 
-- **The backend is not mine.** It ships with the starter repo. I read its
-  contract closely — `docs/API.md` and the Bruno collection — and probed every
-  endpoint I consume with `curl` before writing against it, including the failure
-  cases (`409` on a double post, `422 NOT_AN_OCCURRENCE`, the sign check on a
-  bill). I did not review its implementation, and the brief says I do not have to.
-- **The client is AI-assisted and human-directed.** The decisions in this README
-  are the ones I made and can defend: what to leave out, where derived values
-  live, what each mutation invalidates, building the design system, the fetch
-  seam in the tests. The code that implements them was largely written with
-  Claude, then reviewed, corrected and mutation-checked.
-- **Where I pushed back on it.** The first pass at Reports announced nothing to a
-  screen reader and had no tests at all — both were caught by asking for a review
-  rather than by the code looking wrong.
+**How the work was split.** I set the architecture up front — the feature-based
+layout, where server state lives, what belongs in a shared package — and said how
+things were to be built before any of them were. Then, rather than describing a
+convention, I wrote one of each by hand as the pattern: one query hook and one
+mutation hook in the react-query layer, one screen, one test. Everything after that
+was asked to follow the example.
+
+That is why every hook in `src/http/` and in the features' own `http/` folders has
+the same shape, why the query keys carry their filters the same way in all of them,
+and why the invalidation set is the only part that differs between mutations. The
+shape was a decision I made once, not something that emerged.
+
+**Where I leaned on it hardest.** Three places, all of them work where reading the
+whole repo at once beats reading it a file at a time:
+
+- **The Lighthouse score** — standing the audit up, and then closing what it
+  found: a focusable node inside an `aria-hidden` chart, thirty-four elements under
+  the contrast floor, a heading level skipped.
+- **Accessibility past what an audit catches** — the `role="status"` lines that say
+  what changed, the screen-reader table under the chart, per-row buttons that name
+  their own row.
+- **The unit tests** — their breadth, and the coverage gate that keeps them honest.
+
+**What is not mine.** The backend ships with the starter repo. I read its contract
+closely — `docs/API.md` and the Bruno collection — and probed every endpoint I
+consume with `curl` before writing against it, including the failure cases (`409`
+on a double post, `422 NOT_AN_OCCURRENCE`, the sign check on a bill). I did not
+review its implementation, and the brief says I do not have to.
+
+**What is mine.** The decisions in this README: what to leave out, where derived
+values live, what each mutation invalidates, building the design system rather than
+adopting one, the fetch seam in the tests. The code implementing them was largely
+written with Claude against the patterns above, then reviewed, corrected and
+mutation-checked.
+
+**Where I pushed back.** The first pass at Reports announced nothing to a screen
+reader and had no tests at all — both caught by asking for a review, not by the
+code looking wrong.
 
 Ask me about any file in here.
 
