@@ -48,7 +48,7 @@ export function EmptyState({
   return (
     <div className={cn('rounded-md border border-divider p-3 text-center', className)}>
       <div className='font-semibold font-heading text-[19px]'>{title}</div>
-      {description ? <p className='mt-1 mb-2 text-ui-sm text-ink/55'>{description}</p> : null}
+      {description ? <p className='mt-1 mb-2 text-ui-sm text-ink/70'>{description}</p> : null}
       {action}
     </div>
   );
@@ -71,7 +71,7 @@ export function ErrorState({
         <Info className='mt-0.5 size-4.5 flex-none text-accent-700' aria-hidden='true' />
         <div>
           <div className='font-semibold font-heading text-[17px]'>{title}</div>
-          {description ? <p className='mt-0.5 mb-2 text-ui-sm text-ink/55'>{description}</p> : null}
+          {description ? <p className='mt-0.5 mb-2 text-ui-sm text-ink/70'>{description}</p> : null}
           {onRetry ? (
             <Button variant='secondary' onClick={onRetry}>
               Retry
@@ -99,7 +99,7 @@ export function Notice({
       role={variant === 'attention' ? 'alert' : undefined}
       className={cn(
         'flex items-center gap-2 rounded-md border px-2.5 py-2 text-ui-sm',
-        variant === 'attention' ? 'border-accent-400' : 'border-divider text-ink/55',
+        variant === 'attention' ? 'border-accent-400' : 'border-divider text-ink/70',
         className,
       )}
     >
@@ -127,7 +127,7 @@ export function Pagination({
 }) {
   return (
     <div className={cn('flex flex-wrap items-center justify-between gap-3', className)}>
-      {summary ? <span className='text-ui-sm text-ink/55 tabular-nums'>{summary}</span> : null}
+      {summary ? <span className='text-ui-sm text-ink/70 tabular-nums'>{summary}</span> : null}
       <div className='flex items-center gap-2'>
         <Button
           icon

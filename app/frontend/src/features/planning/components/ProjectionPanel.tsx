@@ -17,7 +17,7 @@ export function ProjectionPanel({ projection, horizon, isFetching }: ProjectionP
         actualUpTo={PROJECTION_SEAM}
         label={`Projected CAD balance to ${projection.range.to}`}
       />
-      <p className='mt-1 text-label text-ink/55'>
+      <p className='mt-1 text-label text-ink/70'>
         Solid to <DateText value={projection.assumptions.actualsThrough} year /> — actuals. Dashed
         after it — commitments only.
       </p>
@@ -52,7 +52,7 @@ export function ProjectionPanel({ projection, horizon, isFetching }: ProjectionP
         </Card>
       </div>
 
-      <p className='mt-3 text-ui-sm text-pretty text-ink/55'>{projection.assumptions.note}</p>
+      <p className='mt-3 text-ui-sm text-pretty text-ink/70'>{projection.assumptions.note}</p>
     </div>
   );
 }

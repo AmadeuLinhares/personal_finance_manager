@@ -34,7 +34,7 @@ export function Th({
     <th
       scope={scope}
       className={cn(
-        'border-b border-divider p-2 text-meta tracking-[0.08em] text-ink/60 uppercase',
+        'border-b border-divider p-2 text-meta tracking-[0.08em] text-ink/70 uppercase',
         numeric ? 'text-right' : 'text-left',
         className,
       )}

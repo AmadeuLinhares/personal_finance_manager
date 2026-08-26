@@ -36,7 +36,7 @@ export function OccurrenceRow({ occurrence, busy, onPost, onSkip, onUnskip }: Oc
       <Td>
         <Tag variant={STATUS_VARIANT[occurrence.status]}>{occurrence.status}</Tag>
       </Td>
-      <Td numeric className={open ? undefined : 'text-ink/55'}>
+      <Td numeric className={open ? undefined : 'text-ink/70'}>
         <Money minorUnits={occurrence.amount} signed />
       </Td>
       <Td numeric>

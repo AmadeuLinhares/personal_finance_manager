@@ -31,7 +31,7 @@ const PLAIN =
 
 const INNER =
   'h-full w-full min-w-0 bg-transparent py-1.5 text-ui text-ink caret-accent outline-none ' +
-  'placeholder:text-ink/40 disabled:cursor-not-allowed';
+  'placeholder:text-ink/65 disabled:cursor-not-allowed';
 
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'prefix'> {
   mask?: MaskName | CharacterMask;
@@ -101,13 +101,13 @@ export function Input({
   return (
     <div className={cn(BOX, containerClassName)}>
       {prefix == null ? null : (
-        <span className='shrink-0 text-ui text-ink/55 select-none' aria-hidden='true'>
+        <span className='shrink-0 text-ui text-ink/70 select-none' aria-hidden='true'>
           {prefix}
         </span>
       )}
       {control}
       {suffix == null ? null : (
-        <span className='shrink-0 text-ui text-ink/55 select-none' aria-hidden='true'>
+        <span className='shrink-0 text-ui text-ink/70 select-none' aria-hidden='true'>
           {suffix}
         </span>
       )}
@@ -161,7 +161,7 @@ export function Field({ label, hint, error, className, children }: FieldProps) {
           {error}
         </span>
       ) : hint ? (
-        <span id={messageId} className='mt-1 text-meta text-ink/55'>
+        <span id={messageId} className='mt-1 text-meta text-ink/70'>
           {hint}
         </span>
       ) : null}

@@ -37,7 +37,7 @@ export function SegmentedOption({ className, children, ...rest }: SegmentedOptio
       className={cn(
         'inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-ui-sm',
         'border-l border-divider first:border-l-0',
-        'has-checked:text-accent has-checked:shadow-[inset_0_0_0_1px_var(--color-accent)]',
+        'has-checked:text-accent-700 has-checked:shadow-[inset_0_0_0_1px_var(--color-accent)]',
         'not-has-checked:hover:bg-ink/7',
         'has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2',
         'has-[:focus-visible]:outline-accent',

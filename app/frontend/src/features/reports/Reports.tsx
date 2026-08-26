@@ -53,7 +53,7 @@ export function Reports() {
       <div className='flex flex-wrap items-end justify-between gap-3'>
         <div>
           <h2 className='font-heading text-h2 font-semibold'>Expenses by category</h2>
-          <p className='text-ui-sm text-ink/55'>
+          <p className='text-ui-sm text-ink/70'>
             {data === undefined
               ? `${currency} · one month, one currency`
               : `${data.currency} · ${String(data.scope.accountIds.length)} accounts · ${
@@ -95,7 +95,7 @@ export function Reports() {
       ) : (
         <div className='grid gap-8 lg:grid-cols-[1.4fr_1fr]' aria-busy={isFetching}>
           <section>
-            <p className='mb-3 text-ui-sm text-ink/55' role='status'>
+            <p className='mb-3 text-ui-sm text-ink/70' role='status'>
               {`${formatMonth(month)} · ${String(rows.length)} ${
                 rows.length === 1 ? 'category' : 'categories'
               } · ${rolledUp && canRollUp ? 'rolled up into parents' : 'as reported'}${

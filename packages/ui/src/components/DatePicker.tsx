@@ -216,10 +216,10 @@ export function DatePicker({
   };
 
   const navButton =
-    'flex size-8 flex-none items-center justify-center rounded-md text-ink/55 ' +
+    'flex size-8 flex-none items-center justify-center rounded-md text-ink/70 ' +
     'hover:bg-ink/7 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent';
 
-  const chosen = 'text-accent font-semibold shadow-[inset_0_0_0_1px_var(--color-accent)]';
+  const chosen = 'text-accent-700 font-semibold shadow-[inset_0_0_0_1px_var(--color-accent)]';
 
   const panel = (
     <div
@@ -262,7 +262,7 @@ export function DatePicker({
           {view === 'days' ? `${MONTHS[month] ?? ''} ${String(year)}` : String(year)}
           {mode === 'month' ? null : (
             <ChevronDown
-              className={cn('size-3 text-ink/55', view === 'months' && 'rotate-180')}
+              className={cn('size-3 text-ink/70', view === 'months' && 'rotate-180')}
               aria-hidden='true'
             />
           )}
@@ -284,7 +284,7 @@ export function DatePicker({
       {view === 'days' ? (
         <>
           <div
-            className='mb-1 grid grid-cols-7 text-center text-meta text-ink/55'
+            className='mb-1 grid grid-cols-7 text-center text-meta text-ink/70'
             aria-hidden='true'
           >
             {WEEKDAYS.map((weekday, index) => (
@@ -310,7 +310,7 @@ export function DatePicker({
                   className={cn(
                     'flex aspect-square items-center justify-center rounded-md text-ui-sm',
                     'hover:bg-accent/12 disabled:opacity-30 disabled:hover:bg-transparent',
-                    outside && !isSelected && 'text-ink/35',
+                    outside && !isSelected && 'text-ink/65',
                     isToday && !isSelected && 'font-semibold text-accent-700',
                     isSelected && chosen,
                   )}
@@ -356,7 +356,7 @@ export function DatePicker({
             if (mode === 'month') commit(toIsoMonth(today));
             else pickDay(today);
           }}
-          className='rounded-md px-2 py-1 text-label text-accent hover:bg-accent/10 disabled:opacity-40'
+          className='rounded-md px-2 py-1 text-label text-accent-700 hover:bg-accent/10 disabled:opacity-40'
         >
           {mode === 'month' ? 'This month' : 'Today'}
         </button>
@@ -368,7 +368,7 @@ export function DatePicker({
               close();
               triggerRef.current?.focus();
             }}
-            className='ml-auto rounded-md px-2 py-1 text-label text-ink/55 hover:bg-ink/7 hover:text-ink'
+            className='ml-auto rounded-md px-2 py-1 text-label text-ink/70 hover:bg-ink/7 hover:text-ink'
           >
             Clear
           </button>
@@ -390,7 +390,7 @@ export function DatePicker({
         aria-expanded={open}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
-        aria-label={ariaLabel}
+        aria-label={ariaLabel === undefined ? undefined : `${ariaLabel}: ${label}`}
         onClick={toggle}
         className={cn(
           'flex min-h-9 w-full cursor-pointer items-center gap-2 rounded-md border border-divider',
@@ -401,10 +401,10 @@ export function DatePicker({
           open && 'border-accent',
         )}
       >
-        <Calendar className='size-3.5 flex-none text-ink/55' aria-hidden='true' />
-        <span className={cn('min-w-0 flex-1 truncate', !value && 'text-ink/40')}>{label}</span>
+        <Calendar className='size-3.5 flex-none text-ink/70' aria-hidden='true' />
+        <span className={cn('min-w-0 flex-1 truncate', !value && 'text-ink/65')}>{label}</span>
         <ChevronDown
-          className={cn('size-3 flex-none text-ink/55', open && 'rotate-180')}
+          className={cn('size-3 flex-none text-ink/70', open && 'rotate-180')}
           aria-hidden='true'
         />
       </button>

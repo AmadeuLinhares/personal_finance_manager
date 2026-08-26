@@ -20,21 +20,21 @@ export const Roles: Story = {
   render: () => (
     <div className='flex flex-col gap-3'>
       <div className='flex flex-wrap items-center gap-2'>
-        <span className='mr-1 text-label text-ink/55'>needs attention:</span>
+        <span className='mr-1 text-label text-ink/70'>needs attention:</span>
         <Tag variant='accent'>Income</Tag>
         <Tag variant='accent'>overdue</Tag>
         <Tag variant='accent'>Active</Tag>
         <Tag variant='accent'>over budget</Tag>
       </div>
       <div className='flex flex-wrap items-center gap-2'>
-        <span className='mr-1 text-label text-ink/55'>categories:</span>
+        <span className='mr-1 text-label text-ink/70'>categories:</span>
         <Tag>Groceries</Tag>
         <Tag>Housing</Tag>
         <Tag>scheduled</Tag>
         <Tag>Completed</Tag>
       </div>
       <div className='flex flex-wrap items-center gap-2'>
-        <span className='mr-1 text-label text-ink/55'>metadata:</span>
+        <span className='mr-1 text-label text-ink/70'>metadata:</span>
         <Tag variant='outline'>pending</Tag>
         <Tag variant='outline'>transfer</Tag>
         <Tag variant='outline'>Uncategorised</Tag>

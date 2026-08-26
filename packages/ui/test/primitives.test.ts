@@ -123,9 +123,9 @@ test('Tag carries its variant, and neutral is the default', () => {
   assert.ok(firstChild(outline).className.includes('border-accent'));
 });
 
-test('Kicker is a heading, so a section has one', () => {
+test('Kicker is an h3, so it does not skip levels under a screen heading', () => {
   render(h(Kicker, null, 'Accounts'));
-  assert.equal(screen.getByRole('heading', { name: 'Accounts' }).tagName, 'H6');
+  assert.equal(screen.getByRole('heading', { name: 'Accounts' }).tagName, 'H3');
 });
 
 test('VisuallyHidden keeps the text in the accessibility tree', () => {

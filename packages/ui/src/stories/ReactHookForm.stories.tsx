@@ -127,13 +127,13 @@ export const NewTransaction: StoryObj = {
           </form>
 
           <aside className='flex flex-col gap-2 rounded-md border border-divider p-3'>
-            <span className='text-micro tracking-[0.1em] text-accent uppercase'>
+            <span className='text-micro tracking-[0.1em] text-accent-700 uppercase'>
               Live form state
             </span>
             <pre className='overflow-x-auto text-label text-ink/70 tabular-nums'>
               {JSON.stringify(values, null, 2)}
             </pre>
-            <span className='text-label text-ink/55'>
+            <span className='text-label text-ink/70'>
               typeof amount: <span className='text-accent-700'>{typeof values.amount}</span>
             </span>
             <span className='mt-2 text-ui'>

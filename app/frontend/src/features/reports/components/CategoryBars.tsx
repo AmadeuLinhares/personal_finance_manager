@@ -27,9 +27,9 @@ export function CategoryBars({ rows, currency }: CategoryBarsProps) {
             <span className='whitespace-nowrap tabular-nums'>
               <Money minorUnits={row.outflow} currency={currency} colorInflow={false} />{' '}
               {row.budget === null ? (
-                <span className='text-ink/55'>unbudgeted</span>
+                <span className='text-ink/70'>unbudgeted</span>
               ) : (
-                <span className='text-ink/55'>
+                <span className='text-ink/70'>
                   of <Money minorUnits={row.budget} currency={currency} colorInflow={false} />
                 </span>
               )}

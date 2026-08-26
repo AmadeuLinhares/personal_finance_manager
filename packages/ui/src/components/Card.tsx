@@ -29,7 +29,7 @@ export function Card({ elevation = 'none', className, ...rest }: CardProps) {
 export function CardKicker({ className, ...rest }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn('text-micro tracking-[0.1em] text-accent uppercase', className)}
+      className={cn('text-micro tracking-[0.1em] text-accent-700 uppercase', className)}
       {...rest}
     />
   );
@@ -47,6 +47,6 @@ export function CardBody({ className, ...rest }: HTMLAttributes<HTMLParagraphEle
 
 export function CardMeta({ className, ...rest }: HTMLAttributes<HTMLSpanElement>) {
   return (
-    <span className={cn('flex items-center gap-1.5 text-meta text-ink/50', className)} {...rest} />
+    <span className={cn('flex items-center gap-1.5 text-meta text-ink/70', className)} {...rest} />
   );
 }

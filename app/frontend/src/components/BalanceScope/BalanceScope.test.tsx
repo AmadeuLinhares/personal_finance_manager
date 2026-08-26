@@ -51,7 +51,7 @@ test('a past date is a new request, not a client-side recalculation', async () =
   await screen.findByText(formatMoney(4218420));
 
   const first = dayOfThisMonth(1);
-  fireEvent.click(screen.getByRole('button', { name: 'Balance as of' }));
+  fireEvent.click(screen.getByRole('button', { name: /^Balance as of/ }));
   fireEvent.click(screen.getByRole('button', { name: dayLabel(first) }));
 
   await waitFor(() => {
@@ -63,7 +63,7 @@ test('tomorrow is not a balance anyone can have', async () => {
   renderScope();
   await screen.findByText(formatMoney(4218420));
 
-  fireEvent.click(screen.getByRole('button', { name: 'Balance as of' }));
+  fireEvent.click(screen.getByRole('button', { name: /^Balance as of/ }));
   const tomorrow = screen.getByRole('button', {
     name: dayLabel(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)),
   });

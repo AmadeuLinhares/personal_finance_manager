@@ -14,7 +14,7 @@ export function BalanceScope({ value, onChange }: BalanceScopeProps) {
   const cad = data?.meta.totalsByCurrency.CAD;
 
   return (
-    <div className='hidden items-center gap-2 text-ui-sm whitespace-nowrap text-ink/55 lg:flex'>
+    <div className='hidden items-center gap-2 text-ui-sm whitespace-nowrap text-ink/70 lg:flex'>
       <span>Balance as of</span>
 
       <DatePicker

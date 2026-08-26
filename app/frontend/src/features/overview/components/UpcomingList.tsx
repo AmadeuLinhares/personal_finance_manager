@@ -16,7 +16,7 @@ export function UpcomingList({ occurrences }: UpcomingListProps) {
           className='flex items-center justify-between gap-2 border-b border-divider py-2 text-ui'
         >
           <span>
-            <DateText value={occurrence.date} className='text-ink/55' /> · {occurrence.name}
+            <DateText value={occurrence.date} className='text-ink/70' /> · {occurrence.name}
             {occurrence.status === 'overdue' ? (
               <Tag variant='accent' className='ml-1'>
                 overdue

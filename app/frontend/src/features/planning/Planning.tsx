@@ -52,7 +52,7 @@ export function Planning({ onSchedule }: PlanningProps) {
       <div className='flex flex-wrap items-end justify-between gap-3'>
         <div>
           <h2 className='font-heading text-h2 font-semibold'>Bills, income &amp; projection</h2>
-          <p className='max-w-[620px] text-ui-sm text-pretty text-ink/55'>
+          <p className='max-w-[620px] text-ui-sm text-pretty text-ink/70'>
             Rules, not rows — posting or skipping one date never touches the rule behind it
           </p>
         </div>
@@ -140,7 +140,7 @@ export function Planning({ onSchedule }: PlanningProps) {
                 onUnskip={actions.unskip}
               />
 
-              <p className='mt-2 text-ui-sm text-ink/55 tabular-nums' role='status'>
+              <p className='mt-2 text-ui-sm text-ink/70 tabular-nums' role='status'>
                 {`${String(totals?.occurrenceCount ?? occurrences.length)} occurrences to `}
                 <DateText value={to} year />
                 {' · bills '}

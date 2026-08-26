@@ -34,7 +34,7 @@ function renderTransactions() {
 const params = (stub: ReturnType<typeof stubFetch>) => stub.lastTo('/transactions')?.params;
 
 function pickDay(pickerLabel: string, date: Date) {
-  fireEvent.click(screen.getByRole('button', { name: pickerLabel }));
+  fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${pickerLabel}`) }));
   fireEvent.click(
     screen.getByRole('button', { name: formatDate(toIsoDate(date), { year: true }) }),
   );
@@ -99,7 +99,7 @@ test('the To picker cannot be set before the From date', async () => {
 
   pickDay('From date', dayOfThisMonth(15));
 
-  fireEvent.click(screen.getByRole('button', { name: 'To date' }));
+  fireEvent.click(screen.getByRole('button', { name: /^To date/ }));
   const earlier = screen.getByRole('button', {
     name: formatDate(toIsoDate(dayOfThisMonth(10)), { year: true }),
   });

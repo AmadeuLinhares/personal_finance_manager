@@ -44,12 +44,12 @@ export function Overview({ asOf, onGo }: OverviewProps) {
       <div className='flex flex-wrap items-end justify-between gap-4'>
         <div>
           <h2 className='font-heading text-h2 font-semibold'>Overview</h2>
-          <p className='max-w-[620px] text-ui-sm text-pretty text-ink/55'>
+          <p className='max-w-[620px] text-ui-sm text-pretty text-ink/70'>
             What the other three screens say, on one page — each panel is a preview of the screen
             that owns it
           </p>
         </div>
-        <p className='text-ui-sm text-ink/55'>
+        <p className='text-ui-sm text-ink/70'>
           Balances as of <DateText value={asOf} year /> — the date in the header
         </p>
       </div>
@@ -74,7 +74,7 @@ export function Overview({ asOf, onGo }: OverviewProps) {
         }}
       >
         <AccountCards accounts={accounts} />
-        <p className='mt-3 text-ui-sm text-ink/55 tabular-nums' role='status'>
+        <p className='mt-3 text-ui-sm text-ink/70 tabular-nums' role='status'>
           {describeTotals(accountsQuery.data?.meta.totalsByCurrency ?? {})}
           {accountsQuery.isFetching ? ' · updating…' : ''}
         </p>
@@ -98,7 +98,7 @@ export function Overview({ asOf, onGo }: OverviewProps) {
           }}
         >
           <SpendingList rows={spending} />
-          <p className='mt-3 text-ui-sm text-ink/55' role='status'>
+          <p className='mt-3 text-ui-sm text-ink/70' role='status'>
             {`Top ${String(spending.length)} of ${String(report?.byCategory.length ?? 0)} categories, CAD, transfers excluded`}
           </p>
         </Panel>
@@ -119,7 +119,7 @@ export function Overview({ asOf, onGo }: OverviewProps) {
           }}
         >
           <UpcomingList occurrences={upcoming} />
-          <p className='mt-3 text-ui-sm text-ink/55 tabular-nums' role='status'>
+          <p className='mt-3 text-ui-sm text-ink/70 tabular-nums' role='status'>
             {totals !== undefined && totals.overdueCount > 0
               ? `${String(totals.overdueCount)} overdue · `
               : ''}

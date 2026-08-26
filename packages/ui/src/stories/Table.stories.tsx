@@ -103,7 +103,7 @@ export const Ledger: StoryObj = {
                   <Td numeric>
                     <Money minorUnits={row.amount} signed />
                   </Td>
-                  <Td numeric className='text-ink/55'>
+                  <Td numeric className='text-ink/70'>
                     {row.running === null ? (
                       'null · pending'
                     ) : (
@@ -200,13 +200,13 @@ export const Occurrences: StoryObj = {
             <Td>
               {row.item}
               {row.note ? (
-                <span className='ml-1.5 text-label text-ink/55'>· {row.note}</span>
+                <span className='ml-1.5 text-label text-ink/70'>· {row.note}</span>
               ) : null}
             </Td>
             <Td>
               <Tag variant={row.variant as 'accent' | 'neutral' | 'outline'}>{row.status}</Tag>
             </Td>
-            <Td numeric className={row.actions ? undefined : 'text-ink/55'}>
+            <Td numeric className={row.actions ? undefined : 'text-ink/70'}>
               <Money minorUnits={row.amount} signed />
             </Td>
             <Td numeric>

@@ -9,11 +9,12 @@ const BASE =
 
 const VARIANT = {
   primary:
-    'text-accent border-accent hover:bg-accent/12 active:bg-accent/22 ' +
+    'text-accent-700 border-accent hover:bg-accent/12 active:bg-accent/22 ' +
     'disabled:hover:bg-transparent',
   secondary:
     'text-ink border-divider hover:bg-ink/7 active:bg-ink/14 disabled:hover:bg-transparent',
-  ghost: 'text-accent px-1 hover:bg-accent/10 active:bg-accent/18 disabled:hover:bg-transparent',
+  ghost:
+    'text-accent-700 px-1 hover:bg-accent/10 active:bg-accent/18 disabled:hover:bg-transparent',
 } as const;
 
 const PADDING = {

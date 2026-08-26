@@ -25,7 +25,7 @@ export function TransactionRow({ transaction, singleAccount }: TransactionRowPro
           </Tag>
         )}
       </Td>
-      <Td className='whitespace-nowrap text-ink/55'>
+      <Td className='whitespace-nowrap text-ink/70'>
         {transaction.account?.name ?? transaction.accountId}
       </Td>
       <Td>
@@ -42,7 +42,7 @@ export function TransactionRow({ transaction, singleAccount }: TransactionRowPro
           signed
         />
       </Td>
-      <Td numeric className='text-ink/55'>
+      <Td numeric className='text-ink/70'>
         {!singleAccount ? (
           <>
             <span

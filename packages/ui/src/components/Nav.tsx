@@ -23,7 +23,7 @@ export function NavLink({ className, ...rest }: AnchorHTMLAttributes<HTMLAnchorE
   return (
     <a
       className={cn(
-        'text-ui text-inherit no-underline hover:text-accent aria-[current=page]:text-accent',
+        'text-ui text-inherit no-underline hover:text-accent-700 aria-[current=page]:text-accent-700',
         className,
       )}
       {...rest}

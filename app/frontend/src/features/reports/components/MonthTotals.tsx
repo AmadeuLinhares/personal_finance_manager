@@ -23,7 +23,7 @@ export function MonthTotals({ report, currency }: MonthTotalsProps) {
           </Tr>
           <Tr>
             <Td>
-              Inflow <span className='text-ink/55'>(incl. refunds)</span>
+              Inflow <span className='text-ink/70'>(incl. refunds)</span>
             </Td>
             <Td numeric>
               <Money minorUnits={report?.inflow ?? 0} currency={currency} colorInflow={false} />
@@ -41,7 +41,7 @@ export function MonthTotals({ report, currency }: MonthTotalsProps) {
           </Tr>
         </tbody>
       </Table>
-      <p className='mt-3 text-ui-sm text-pretty text-ink/55'>
+      <p className='mt-3 text-ui-sm text-pretty text-ink/70'>
         Classification follows the sign of the amount, not the category&apos;s kind — a refund shows
         as inflow inside an expense category. Uncategorised spend is a normal row, not a separate
         bucket.

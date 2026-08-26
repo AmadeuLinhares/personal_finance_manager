@@ -26,7 +26,7 @@ export function ProjectionSummary({ projection }: ProjectionSummaryProps) {
         height={130}
         label={`Projected CAD balance to ${projection.range.to}`}
       />
-      <p className='mt-1 text-label text-ink/55'>
+      <p className='mt-1 text-label text-ink/70'>
         Solid to <DateText value={projection.assumptions.actualsThrough} year /> — actuals. Dashed
         after it — commitments only.
       </p>

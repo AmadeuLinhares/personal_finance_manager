@@ -61,7 +61,7 @@ const ChartTooltip = ({
   return (
     <div className='rounded-md border border-divider bg-bg px-2 py-1 text-label tabular-nums shadow-md'>
       {row.label} · {formatMoney(row.value, currency)}
-      {row.isForecast ? <span className='text-ink/55'> · forecast</span> : null}
+      {row.isForecast ? <span className='text-ink/70'> · forecast</span> : null}
     </div>
   );
 };
@@ -84,7 +84,11 @@ export function TrendChart({
     <div className={cn('relative', className)}>
       <div style={{ height }} aria-hidden>
         <ResponsiveContainer width='100%' height='100%'>
-          <LineChart data={rows} margin={{ top: 16, right: 10, bottom: 0, left: 10 }}>
+          <LineChart
+            accessibilityLayer={false}
+            data={rows}
+            margin={{ top: 16, right: 10, bottom: 0, left: 10 }}
+          >
             <CartesianGrid vertical={false} stroke='var(--color-divider)' />
             <XAxis
               dataKey='label'

@@ -6,7 +6,7 @@ const VARIANT = {
   accent: 'bg-accent-100 text-accent-800',
   accent2: 'bg-accent-2-100 text-accent-2-800',
   neutral: 'bg-neutral-100 text-neutral-800',
-  outline: 'border border-accent text-accent',
+  outline: 'border border-accent text-accent-700',
 } as const;
 
 export interface TagProps extends HTMLAttributes<HTMLSpanElement> {

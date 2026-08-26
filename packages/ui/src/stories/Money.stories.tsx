@@ -25,10 +25,10 @@ export const Amounts: StoryObj = {
             <td className='py-1 pr-4 text-right'>
               <Money minorUnits={minor as number} signed={signed as boolean} />
             </td>
-            <td className='py-1 pr-4 text-label text-ink/55 tabular-nums'>
+            <td className='py-1 pr-4 text-label text-ink/70 tabular-nums'>
               stored as {String(minor)}
             </td>
-            <td className='py-1 text-ui-sm text-ink/55'>{note as string}</td>
+            <td className='py-1 text-ui-sm text-ink/70'>{note as string}</td>
           </tr>
         ))}
       </tbody>
@@ -49,13 +49,13 @@ export const Currencies: StoryObj = {
     <div className='flex flex-col gap-2 text-ui'>
       <span>
         <Money minorUnits={1041468} colorInflow={false} />{' '}
-        <span className='text-ink/55'>CAD · the default scope</span>
+        <span className='text-ink/70'>CAD · the default scope</span>
       </span>
       <span>
         <Money minorUnits={133518} currency='USD' colorInflow={false} />{' '}
-        <span className='text-ink/55'>USD · own total, own reports</span>
+        <span className='text-ink/70'>USD · own total, own reports</span>
       </span>
-      <span className='mt-2 text-ui-sm text-ink/55'>
+      <span className='mt-2 text-ui-sm text-ink/70'>
         No exchange rates exist. The symbols differ so two totals can never be mistaken for one
         scope, and a cross-currency transfer is refused rather than guessed.
       </span>
@@ -72,7 +72,7 @@ export const Dates: StoryObj = {
       <span className='tabular-nums'>
         2026-01-05 → <DateText value='2026-01-05' year />
       </span>
-      <span className='mt-2 max-w-[560px] text-ui-sm text-ink/55'>
+      <span className='mt-2 max-w-[560px] text-ui-sm text-ink/70'>
         A transaction happens on a day, not at an instant. These are parsed by splitting the string:
         <span className='italic'> new Date(&apos;2026-08-21&apos;)</span> is UTC midnight and
         renders as the 20th anywhere west of Greenwich.
