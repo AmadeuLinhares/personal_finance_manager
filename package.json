@@ -14,18 +14,20 @@
     "build": "pnpm --filter @pfm/frontend build",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
-    "format": "prettier --write \"*.{js,mjs,json,md}\" \"packages/eslint/**/*.{js,mjs,json,md}\" && pnpm -r format",
-    "format:check": "prettier --check \"*.{js,mjs,json,md}\" \"packages/eslint/**/*.{js,mjs,json,md}\" && pnpm -r format:check",
+    "format": "prettier --write \"*.{js,mjs,json,md}\" \"scripts/**/*.mjs\" \".github/**/*.yml\" \"packages/eslint/**/*.{js,mjs,json,md}\" && pnpm -r format",
+    "format:check": "prettier --check \"*.{js,mjs,json,md}\" \"scripts/**/*.mjs\" \".github/**/*.yml\" \"packages/eslint/**/*.{js,mjs,json,md}\" && pnpm -r format:check",
     "type-check": "pnpm -r type-check",
     "test": "pnpm -r test",
     "reset": "curl -s -X POST http://localhost:4000/api/dev/reset -H 'Content-Type: application/json' -d '{}'",
     "prepare": "husky",
     "knip": "pnpm -r knip",
     "storybook": "pnpm --filter @pfm/ui storybook",
-    "build-storybook": "pnpm --filter @pfm/ui build-storybook"
+    "build-storybook": "pnpm --filter @pfm/ui build-storybook",
+    "lighthouse": "pnpm build && node scripts/lighthouse.mjs"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^21.2.2",
+    "@lhci/cli": "^0.15.1",
     "@pfm/eslint-config": "workspace:*",
     "commitlint": "^21.2.2",
     "husky": "^9.1.7",

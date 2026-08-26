@@ -30,6 +30,7 @@ by accident and no CORS is involved. One `Ctrl-C` stops both.
 | `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                              |
 | `pnpm storybook`                              | the design system in isolation                                      |
 | `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions)              |
+| `pnpm lighthouse`                             | build, serve and audit the real app in Chrome                       |
 
 **To see the loading and error states**, make the API misbehave — per request
 with `?__latency=2000` or `?__error=500`, or globally:
@@ -264,6 +265,33 @@ screen-reader table, so magnitude never depends on the line alone. `@storybook/a
 story, which is where contrast and landmark problems surface. Known gaps: no
 arrow-key navigation inside the calendar grid, and no axe run over the assembled
 screens — what the screen tests assert is roles and accessible names, not colour.
+
+**CI runs what I run.** `.github/workflows/ci.yml` has two jobs. `checks` runs
+lint, `prettier --check`, `tsc`, knip and the test suite with its coverage gate,
+then uploads the coverage reports. `lighthouse` builds the app, serves it, and
+audits it in a real Chrome. Nothing in the pipeline is a command that exists only
+in CI — every step is one I run locally, under the same name.
+
+**Lighthouse audits the real app, not a shell.** `pnpm lighthouse` starts the API,
+serves the production build and runs Lighthouse three times against it, so the
+page being audited has real accounts, real category totals and a real projection
+on it. That needed one fix: the `/api` proxy lived only under Vite's `server`
+config, so `vite preview` was not proxying and a production build served locally
+could not reach the API at all. It is shared between `server` and `preview` now.
+
+The thresholds are in `lighthouserc.json` — accessibility, best practices and SEO
+fail the build below 0.95, 0.9 and 0.9. **Performance is a warning rather than an
+error until it has been measured on the runner**: the bundle is 762 kB raw for one
+recharts line chart, and publishing the number the pipeline actually produces is
+worth more than guessing at a floor. Two limits worth naming out loud:
+
+- **Only the Overview is audited.** Screens are local state, not routes, so there
+  is no URL for Transactions, Reports or Planning to point Lighthouse at. That is
+  the most concrete cost of having no router yet, and the audit gets wider the day
+  there is one.
+- **Desktop preset.** A ledger is read at a desk. Mobile throttling would produce
+  a worse number that says less about how this app is used — that is a choice, so
+  it is written down rather than buried in a config file.
 
 **Coverage is a gate, not a report.** `pnpm test` runs with `--coverage` and
 `vitest.config.ts` sets a floor of 80% on statements, branches, functions and
