@@ -18,8 +18,6 @@ export const useGetTransactions = (
   options?: TransactionsQueryOptions,
 ) => {
   return useQuery<ResponseTransactions, FetchError, ResponseTransactions, TransactionsQueryKey>({
-    // The filters are part of the key, so going back to a previous month is a
-    // cache hit instead of a refetch.
     queryKey: ['transactions', filters],
     queryFn: async () => {
       const resp = await fetchData<undefined, ResponseTransactions>({

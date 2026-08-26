@@ -14,12 +14,6 @@
 
 import { CURRENCY_CODES } from '@pfm/contracts';
 
-/**
- * Which currencies exist is the contract's call (@pfm/contracts owns the list the
- * client types against); how each one is written is this module's. Building the
- * map from CURRENCY_CODES means a currency added to the contract cannot be one
- * this API silently rejects.
- */
 const SYMBOLS = { CAD: '$', USD: '$', EUR: '€' };
 
 export const CURRENCIES = Object.fromEntries(

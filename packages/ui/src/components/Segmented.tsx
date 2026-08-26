@@ -5,18 +5,11 @@ import { cn } from '../lib/cn';
 export interface SegmentedProps {
   className?: string;
   children: ReactNode;
-  /**
-   * Names the set of choices. Without it a screen reader announces "All, radio"
-   * with nothing to say what is being chosen — pass this, or `labelledBy` when a
-   * visible label already exists.
-   */
   label?: string;
-  /** Id of the visible label that names this group. */
   labelledBy?: string;
 }
 
 export function Segmented({ className, children, label, labelledBy }: SegmentedProps) {
-  // Only a named group is worth announcing as a group.
   const named = label !== undefined || labelledBy !== undefined;
 
   return (
@@ -38,7 +31,6 @@ export interface SegmentedOptionProps extends Omit<InputHTMLAttributes<HTMLInput
   children: ReactNode;
 }
 
-/** One choice in a Segmented. Selection is carried by the native radio. */
 export function SegmentedOption({ className, children, ...rest }: SegmentedOptionProps) {
   return (
     <label

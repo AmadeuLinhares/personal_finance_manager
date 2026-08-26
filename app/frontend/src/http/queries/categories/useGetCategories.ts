@@ -36,8 +36,6 @@ export const useGetCategories = (
       }
       throw new FetchError(resp.data);
     },
-    // Categories are effectively reference data: they change on a settings
-    // screen, not while someone reads a ledger.
     staleTime: 5 * 60 * 1000,
     ...options,
   });

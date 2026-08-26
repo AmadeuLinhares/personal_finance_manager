@@ -129,11 +129,9 @@ test('offers actions only on the dates that still have one', async () => {
   renderPlanning();
   await screen.findByText('Hydro');
 
-  // Overdue and scheduled are open: they can be posted or skipped.
   expect(within(rowFor('Hydro')).getByRole('button', { name: /^Post/ })).toBeTruthy();
   expect(within(rowFor('Gym membership')).getByRole('button', { name: /^Skip/ })).toBeTruthy();
 
-  // A skipped date can come back; a posted one is history and has no action.
   expect(within(rowFor('Meal kit')).getByRole('button', { name: /^Undo skip/ })).toBeTruthy();
   expect(within(rowFor('Rent')).queryByRole('button')).toBeNull();
 });
@@ -155,11 +153,9 @@ test('posting sends the occurrence date to the rule that generated it', async ()
 
   await waitFor(() => {
     const posts = stub.matching('/sch_hydro/post');
-    // Throws while the array is empty, which is what makes waitFor retry.
     expect(posts).toHaveLength(1);
     const [call] = posts;
     expect(call.method).toBe('POST');
-    // A rule plus a date: neither identifies an occurrence on its own.
     expect(call.body).toEqual({ date: day(-2) });
   });
 });
@@ -206,7 +202,6 @@ test('the horizon moves the end of both windows at once', async () => {
   await waitFor(() => {
     const sixMonths = stub.lastTo('/scheduled-items/occurrences')?.params.get('to');
     expect(sixMonths).not.toBe(threeMonths);
-    // One horizon, one meaning: the list and the line must agree.
     expect(stub.lastTo('/projections/budget')?.params.get('to')).toBe(sixMonths);
   });
 });
@@ -216,7 +211,6 @@ test('the window opens at the first of the month, not at today', async () => {
   await screen.findByText('Hydro');
 
   const now = new Date();
-  // What already went out this month is the context for what is left of it.
   expect(stub.lastTo('/scheduled-items/occurrences')?.params.get('from')).toBe(
     toIsoDate(new Date(now.getFullYear(), now.getMonth(), 1)),
   );
@@ -226,14 +220,10 @@ test('the chart draws today as the seam: before it actual, after it forecast', a
   renderPlanning();
   await screen.findByText('Hydro');
 
-  // TrendChart repeats its series as a screen-reader table, which is where the
-  // seam is assertable — a dashed stroke is not.
   const now = within(screen.getByRole('row', { name: /^Now/ }));
   expect(now.getByText(formatMoney(4218420))).toBeTruthy();
   expect(now.queryByText(/forecast/)).toBeNull();
 
-  // Every bucket after it is forecast, including the one today falls in: its
-  // closing balance already contains scheduled money that has not happened.
   expect(screen.getByRole('row', { name: /^Aug/ }).textContent).toContain('(forecast)');
   expect(screen.getByRole('row', { name: /^Sep/ }).textContent).toContain('(forecast)');
 });
@@ -261,7 +251,6 @@ test('a failed projection does not take the occurrence list down with it', async
     }),
   });
 
-  // The two queries are independent, and so are their failures.
   expect(await screen.findByText(/Could not load the projection/)).toBeTruthy();
   expect(screen.getByText('Hydro')).toBeTruthy();
   expect(within(rowFor('Hydro')).getByRole('button', { name: /^Post/ })).toBeTruthy();

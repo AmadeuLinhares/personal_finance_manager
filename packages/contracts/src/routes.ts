@@ -1,10 +1,3 @@
-/**
- * Every URL the API exposes, next to the types those URLs answer with.
- *
- * Paths are relative — no host, no `/api` prefix; the client's fetch wrapper adds
- * the base. Query strings are never built here either: that is `withQuery`'s job,
- * so a route stays a route.
- */
 export const routes = {
   meta: '/meta',
 

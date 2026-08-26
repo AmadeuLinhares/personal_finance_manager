@@ -21,8 +21,6 @@ type AccountsQueryOptions = Omit<
 
 export const useGetAccounts = (filters: AccountFilters = {}, options?: AccountsQueryOptions) => {
   return useQuery<ResponseAccounts, FetchError, ResponseAccounts, AccountsQueryKey>({
-    // `asOf` belongs in the key: without it, asking for a past balance would
-    // poison today's cache entry.
     queryKey: ['accounts', filters],
     queryFn: async () => {
       const resp = await fetchData<undefined, ResponseAccounts>({

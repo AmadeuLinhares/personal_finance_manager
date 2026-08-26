@@ -1,10 +1,3 @@
-/**
- * The API data contract, in one place, shared by the Express API and the client.
- *
- * The API owns these shapes; both apps import them instead of restating them.
- * README.md says what belongs here and what does not.
- */
-
 export * from './primitives.ts';
 export * from './envelopes.ts';
 export * from './routes.ts';

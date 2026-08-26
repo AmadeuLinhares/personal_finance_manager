@@ -3,7 +3,6 @@ import { DateText, Money, Tag, Td, Tr, VisuallyHidden } from '@pfm/ui';
 
 export interface TransactionRowProps {
   transaction: Transaction;
-  /** False means the running balance is undefined for the whole table. */
   singleAccount: boolean;
 }
 
@@ -43,11 +42,6 @@ export function TransactionRow({ transaction, singleAccount }: TransactionRowPro
           signed
         />
       </Td>
-      {/*
-        Two different absences, and they are not the same answer: the column
-        cannot exist across accounts, and it does not exist for a row that has
-        not settled. Rendering both as a dash would collapse them into one.
-      */}
       <Td numeric className='text-ink/55'>
         {!singleAccount ? (
           <>

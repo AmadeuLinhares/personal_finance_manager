@@ -26,7 +26,6 @@ type Kind = 'expense' | 'income' | 'transfer';
 interface TransactionForm {
   kind: Kind;
   description: string;
-  /** Positive integer minor units. The sign comes from `kind`, not this field. */
   amount: number;
   date: string;
   accountId: string;
@@ -35,7 +34,6 @@ interface TransactionForm {
   status: 'posted' | 'pending';
 }
 
-/** The fields a 422's `details[]` can be pinned to. */
 const FORM_FIELDS = [
   'description',
   'amount',
@@ -75,16 +73,12 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
     },
   });
 
-  // useWatch, not watch(): it is the subscribing hook, and watch() returns a
-  // function the React Compiler cannot memoize safely.
   const kind = useWatch({ control, name: 'kind' });
   const accountId = useWatch({ control, name: 'accountId' });
   const toAccountId = useWatch({ control, name: 'toAccountId' });
   const isTransfer = kind === 'transfer';
 
   const accountsQuery = useGetAccounts({ includeBalances: false });
-  // Only the categories that match the segmented control — an expense form has no
-  // business offering "Salary".
   const categoriesQuery = useGetCategories({ kind: kind === 'income' ? 'income' : 'expense' });
 
   const accounts = accountsQuery.data?.data ?? [];
@@ -96,11 +90,6 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
   const createTransfer = useCreateTransfer();
   const isSaving = createTransaction.isPending || createTransfer.isPending;
 
-  /**
-   * The accounts arrive after mount, so the defaults cannot come from `useForm`.
-   * Both deps are ids: they only change when the account list really changes, not
-   * on every refetch, so typing is never wiped out from under the user.
-   */
   useEffect(() => {
     if (!open || firstAccountId === '') return;
     reset({
@@ -117,7 +106,6 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
 
   const from = accounts.find((account) => account.id === accountId);
   const to = accounts.find((account) => account.id === toAccountId);
-  /** Cross-currency transfers are refused rather than guessed — no FX rates exist. */
   const currencyMismatch = isTransfer && from && to && from.currency !== to.currency;
 
   const close = () => {
@@ -134,7 +122,6 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
     };
 
     if (values.kind === 'transfer') {
-      // A positive magnitude: the server derives each leg's sign.
       createTransfer.mutate(
         {
           fromAccountId: values.accountId,
@@ -153,7 +140,6 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
       {
         accountId: values.accountId,
         date: values.date,
-        // Signed at the edge: an expense leaves the account, income enters it.
         amount: values.kind === 'expense' ? -values.amount : values.amount,
         description: values.description,
         categoryId: values.categoryId === '' ? null : values.categoryId,
@@ -225,7 +211,6 @@ export function TransactionDialog({ open, onClose }: TransactionDialogProps) {
               {...field}
               {...register('amount', {
                 ...moneyRegisterOptions,
-                // The field is a magnitude — the segmented control carries the direction.
                 min: { value: 1, message: 'VALIDATION_ERROR — amount must be a positive value' },
               })}
             />

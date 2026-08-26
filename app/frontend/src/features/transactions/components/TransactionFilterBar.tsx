@@ -5,9 +5,7 @@ import type { TransactionFilterValues } from '../hooks/useTransactionFilters';
 
 export interface TransactionFilterBarProps {
   values: TransactionFilterValues;
-  /** A patch, not a whole value: the caller owns the paging that comes with it. */
   onChange: (patch: Partial<TransactionFilterValues>) => void;
-  /** Names for the account picker — empty while they load, or if they failed. */
   accounts: Account[];
   accountsPending: boolean;
 }

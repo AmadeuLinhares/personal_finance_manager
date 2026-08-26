@@ -33,11 +33,6 @@ function renderTransactions() {
 
 const params = (stub: ReturnType<typeof stubFetch>) => stub.lastTo('/transactions')?.params;
 
-/**
- * The day cell for a date in the currently shown month. The picker opens on
- * today, and the calendar labels each day in full so a screen reader hears the
- * month — which is what makes it addressable here.
- */
 function pickDay(pickerLabel: string, date: Date) {
   fireEvent.click(screen.getByRole('button', { name: pickerLabel }));
   fireEvent.click(
@@ -55,7 +50,6 @@ test('every filter is a query param, and nothing is filtered in the client', asy
 
   await screen.findByText('Coffee');
 
-  // Both rows came back and both are rendered: the client is not sifting them.
   expect(screen.getByText('Salary')).toBeTruthy();
   expect(params(stub)?.get('pageSize')).toBe('8');
   expect(params(stub)?.get('sort')).toBe('-date,-createdAt');
@@ -67,7 +61,6 @@ test('an unset date range is absent from the request, not sent empty', async () 
 
   await screen.findByText('Coffee');
 
-  // `?from=` is a different request from no `from` at all, and this API is strict.
   expect(params(stub)?.has('from')).toBe(false);
   expect(params(stub)?.has('to')).toBe(false);
 });
@@ -81,7 +74,6 @@ test('picking a start date sends a full date, not a month', async () => {
 
   await waitFor(() => {
     expect(params(stub)?.get('from')).toBe(toIsoDate(fifteenth));
-    // The other end stays open: one date is a bound, not a range.
     expect(params(stub)?.has('to')).toBe(false);
   });
 });
@@ -112,8 +104,6 @@ test('the To picker cannot be set before the From date', async () => {
     name: formatDate(toIsoDate(dayOfThisMonth(10)), { year: true }),
   });
 
-  // An inverted range is not a validation message to write — it is a day the
-  // calendar will not offer.
   expect((earlier as HTMLButtonElement).disabled).toBe(true);
 });
 
@@ -121,7 +111,6 @@ test('a running balance is asked for only once a single account is chosen', asyn
   const stub = renderTransactions();
   await screen.findByText('Coffee');
 
-  // Across accounts the column has no meaning, and asking anyway is a 400.
   expect(params(stub)?.has('withRunningBalance')).toBe(false);
 
   fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'acc_visa' } });
@@ -140,7 +129,6 @@ test('changing a filter goes back to the first page', async () => {
 
   await waitFor(() => {
     expect(params(stub)?.get('direction')).toBe('outflow');
-    // Page 3 of the old filter is not page 3 of the new one.
     expect(params(stub)?.get('page')).toBe('1');
   });
 });

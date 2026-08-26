@@ -6,7 +6,6 @@ export interface ReportControlsProps {
   month: string;
   currency: ReportCurrency;
   rolledUp: boolean;
-  /** Rolling up needs the parent names, which is a second request. */
   canRollUp: boolean;
   onMonthChange: (month: string) => void;
   onCurrencyChange: (currency: ReportCurrency) => void;

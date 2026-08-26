@@ -2,15 +2,6 @@ import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
 
 import type { FetchError } from '@/http/fetch/fetch';
 
-/**
- * Moves an API failure into the form.
- *
- * A `422 VALIDATION_ERROR` carries one `details[]` entry per offending field, so
- * those belong under their own inputs. Everything else — a `CURRENCY_MISMATCH`, a
- * `CONFLICT`, a dead server — has no field to sit under and is returned for the
- * dialog to show once, in full, including the code. Hiding the code would make
- * the same message ambiguous between two different refusals.
- */
 export function applyApiErrorToForm<T extends FieldValues>(
   error: FetchError,
   setError: UseFormSetError<T>,

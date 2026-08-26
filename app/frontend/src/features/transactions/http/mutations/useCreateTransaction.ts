@@ -24,14 +24,9 @@ export const useCreateTransaction = () => {
       if (resp.success) {
         return resp.data;
       }
-      // FetchError, not Error: the form needs `details[]` to put a message under
-      // the field that caused it.
       throw new FetchError(resp.data);
     },
     onSuccess: async () => {
-      // One new row moves the account balance, the month's category totals and
-      // the starting point of the projection. All three are derived from the same
-      // ledger, so all three are now stale.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
         queryClient.invalidateQueries({ queryKey: ['accounts'] }),

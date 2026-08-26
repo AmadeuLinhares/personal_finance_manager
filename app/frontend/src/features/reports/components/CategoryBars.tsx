@@ -9,7 +9,6 @@ export interface CategoryBarsProps {
 }
 
 export function CategoryBars({ rows, currency }: CategoryBarsProps) {
-  /** Unbudgeted rows are scaled against the largest row, so the bars compare. */
   const widest = rows[0]?.outflow ?? 0;
 
   return (

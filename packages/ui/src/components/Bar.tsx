@@ -1,25 +1,13 @@
 import { cn } from '../lib/cn';
 
 export interface BarProps {
-  /** Money already spent, in minor units. */
   spent: number;
-  /** The budget it is measured against, in minor units. Zero or absent hides the ratio. */
   budget?: number;
-  /**
-   * Future money — scheduled occurrences not yet posted. Drawn in a lighter step
-   * beside the spent segment, because a forecast must not read as an actual.
-   */
   committed?: number;
-  /** 8px for a category bar, 6px for the denser project bar. */
   size?: 'md' | 'sm';
   className?: string;
 }
 
-/**
- * The one bar in the system. Track is neutral-200, spent is accent-500,
- * committed is accent-300, and going over budget saturates the whole bar to
- * accent-700 rather than overflowing it.
- */
 export function Bar({ spent, budget, committed = 0, size = 'md', className }: BarProps) {
   const overBudget = budget !== undefined && budget > 0 && spent > budget;
   const scale = budget !== undefined && budget > 0 ? budget : spent + committed;

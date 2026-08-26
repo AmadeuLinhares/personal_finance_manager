@@ -6,7 +6,6 @@ import { TransactionRow } from './TransactionRow';
 export interface TransactionsTableProps {
   rows: Transaction[];
   singleAccount: boolean;
-  /** A refetch behind rows that are still on screen, not a first load. */
   isFetching: boolean;
 }
 

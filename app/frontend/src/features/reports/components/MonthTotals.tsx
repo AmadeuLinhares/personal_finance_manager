@@ -4,7 +4,6 @@ import { Divider, Kicker, Money, Table, Td, Tr } from '@pfm/ui';
 import type { ReportCurrency } from '../constants';
 
 export interface MonthTotalsProps {
-  /** Undefined while the month has no report yet — the rows read as zero. */
   report: MonthlyExpensesReport['months'][number] | undefined;
   currency: ReportCurrency;
 }

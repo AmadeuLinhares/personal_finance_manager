@@ -1,12 +1,5 @@
 import { type ReportExclusions } from '@pfm/contracts';
 
-/**
- * What the report left out, as a sentence.
- *
- * Naming the exclusions is the point: a total that quietly drops transfer legs
- * and USD rows is a number the user cannot reconcile against their own account.
- * Zero counts are left out — "0 pending" is noise, not reassurance.
- */
 export const describeExcluded = (excluded: ReportExclusions): string => {
   const parts = [
     { count: excluded.transferLegs, label: 'transfer legs' },

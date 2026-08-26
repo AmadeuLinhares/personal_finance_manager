@@ -10,7 +10,6 @@ const STATUS_VARIANT: Record<OccurrenceStatus, 'accent' | 'neutral' | 'outline'>
 
 export interface OccurrenceRowProps {
   occurrence: Occurrence;
-  /** This row is mid-flight, so its own buttons go quiet — no others do. */
   busy: boolean;
   onPost: () => void;
   onSkip: () => void;
@@ -19,7 +18,6 @@ export interface OccurrenceRowProps {
 
 export function OccurrenceRow({ occurrence, busy, onPost, onSkip, onUnskip }: OccurrenceRowProps) {
   const open = occurrence.status === 'overdue' || occurrence.status === 'scheduled';
-  // Names the row, so "Post" is not one of thirty identical buttons.
   const named = ` ${occurrence.name}, due ${occurrence.date}`;
 
   return (

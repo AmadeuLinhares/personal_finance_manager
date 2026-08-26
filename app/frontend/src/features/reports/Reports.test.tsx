@@ -7,13 +7,6 @@ import { Reports } from './Reports';
 import { category, categoryTotals, listMeta } from '@test/fixtures';
 import { renderScreen, stubFetch } from '@test/harness';
 
-/*
- * The rows are built so that the roll-up decision actually changes the answer:
- * Utilities is over its own budget, but Housing — Rent plus Utilities, against
- * both their budgets — is not. "Utilities went over" and "Housing is fine" are
- * both true, which is exactly why the screen lets the user choose and does not
- * pick for them.
- */
 const ROWS = [
   categoryTotals({
     categoryId: 'cat_rent',
@@ -31,9 +24,7 @@ const ROWS = [
     overBudget: true,
   }),
   categoryTotals({ categoryId: 'cat_groceries', name: 'Groceries', outflow: 60725, budget: 90000 }),
-  // categoryId null is how the API reports uncategorised spend — a row, not a bucket.
   categoryTotals({ name: 'Uncategorised', outflow: 11382 }),
-  // Income: it belongs in the totals, never in a list of expenses.
   categoryTotals({
     categoryId: 'cat_salary',
     name: 'Salary',
@@ -106,10 +97,6 @@ function renderReports(overrides: Parameters<typeof stubFetch>[0] = {}) {
   return stub;
 }
 
-/**
- * The bar row that starts with this name. Throwing when it is absent is what
- * makes it usable inside `waitFor`, which retries until it stops throwing.
- */
 const rowNamed = (name: string): HTMLElement => {
   const found = screen.getAllByRole('listitem').find((item) => item.textContent.startsWith(name));
   if (!found) throw new Error(`No category row starting with "${name}"`);
@@ -122,9 +109,7 @@ test('lists every category that spent, and leaves income out of the bars', async
   await screen.findByText('Rent');
   expect(screen.getAllByRole('listitem')).toHaveLength(4);
 
-  // Salary has an inflow and no outflow: it is not an expense row.
   expect(screen.queryByText('Salary')).toBeNull();
-  // …but it is still in the month's inflow.
   expect(screen.getByText(formatMoney(436800))).toBeTruthy();
 });
 
@@ -141,21 +126,17 @@ test('rolling up sums the children into the parent, budgets included', async () 
 
   const rollUp = await screen.findByRole('radio', { name: 'Rolled up' });
   await waitFor(() => {
-    // The option waits for the category names, which are a second request.
     expect((rollUp as HTMLInputElement).disabled).toBe(false);
   });
 
-  // Leaf: the child is over its own budget.
   expect(within(rowNamed('Utilities')).getByText('over budget')).toBeTruthy();
 
   fireEvent.click(rollUp);
 
   const housing = await waitFor(() => rowNamed('Housing'));
 
-  // 200000 + 20000 spent, against 215000 + 18000 budgeted.
   expect(within(housing).getByText(formatMoney(220000))).toBeTruthy();
   expect(within(housing).getByText(formatMoney(233000))).toBeTruthy();
-  // And the parent is not over, even though one child is.
   expect(within(housing).queryByText('over budget')).toBeNull();
 
   expect(screen.queryByText('Rent')).toBeNull();
@@ -168,7 +149,6 @@ test('names what the report excluded, and only what it actually excluded', async
   const excluded = await screen.findByText(/Excluded from this report/);
   expect(excluded.textContent).toContain('8 transfer legs');
   expect(excluded.textContent).toContain('2 other-currency');
-  // Both of these are zero — a report should not pad itself with nothing.
   expect(excluded.textContent).not.toContain('out of scope');
   expect(excluded.textContent).not.toContain('pending');
 });
@@ -208,8 +188,6 @@ test('surfaces the API error code instead of an empty report', async () => {
 test('announces what is on screen, since aria-busy alone says nothing', async () => {
   renderReports();
 
-  // The skeleton owns a role=status of its own while loading, so wait for the
-  // one that describes the report rather than the wait.
   await waitFor(() => {
     const status = screen.getByRole('status');
     expect(status.textContent).toContain('4 categories');

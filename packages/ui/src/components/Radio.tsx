@@ -6,7 +6,6 @@ export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   children: ReactNode;
 }
 
-/** A native radio, visually replaced by a themed dot. No script. */
 export function Radio({ className, children, ...rest }: RadioProps) {
   return (
     <label className={cn('group inline-flex cursor-pointer items-center gap-2 text-ui', className)}>

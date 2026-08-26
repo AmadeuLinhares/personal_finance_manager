@@ -10,5 +10,4 @@ storybook-static/
 .env.*
 !.env.example
 docs
-# nota de trabalho de escopo (redundante enquanto "docs" acima estiver ignorado)
 docs/SCOPE.md

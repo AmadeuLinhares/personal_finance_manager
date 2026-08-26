@@ -24,7 +24,6 @@ import { applyApiErrorToForm } from '@/utils/formErrors';
 interface ScheduleForm {
   name: string;
   kind: ScheduledItemKind;
-  /** Positive integer minor units. The sign comes from `kind`, not this field. */
   amount: number;
   startDate: string;
   frequency: Frequency;
@@ -32,7 +31,6 @@ interface ScheduleForm {
   categoryId: string;
 }
 
-/** The fields a 422's `details[]` can be pinned to. */
 const FORM_FIELDS = [
   'name',
   'amount',
@@ -42,10 +40,6 @@ const FORM_FIELDS = [
   'categoryId',
 ] as const;
 
-/**
- * Labels only. The set itself comes from the contract, so a frequency the API
- * accepts and this form forgets to offer is a type error rather than a gap.
- */
 const FREQUENCY_LABELS: Record<Frequency, string> = {
   once: 'Once',
   weekly: 'Weekly',
@@ -88,7 +82,6 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
   const kind = useWatch({ control, name: 'kind' });
 
   const accountsQuery = useGetAccounts({ includeBalances: false });
-  // A bill has no business offering "Salary", and income has none offering "Rent".
   const categoriesQuery = useGetCategories({ kind: kind === 'income' ? 'income' : 'expense' });
 
   const accounts = accountsQuery.data?.data ?? [];
@@ -97,7 +90,6 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
 
   const createScheduledItem = useCreateScheduledItem();
 
-  // The accounts arrive after mount, so the default cannot come from `useForm`.
   useEffect(() => {
     if (!open || firstAccountId === '') return;
     reset({
@@ -126,7 +118,6 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
         kind: values.kind,
         accountId: values.accountId,
         categoryId: values.categoryId === '' ? null : values.categoryId,
-        // Signed at the edge: bills leave the account, income enters it.
         amount: values.kind === 'bill' ? -values.amount : values.amount,
         frequency: values.frequency,
         startDate: values.startDate,

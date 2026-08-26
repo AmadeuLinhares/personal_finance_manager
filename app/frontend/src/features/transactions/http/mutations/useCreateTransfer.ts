@@ -22,8 +22,6 @@ export const useCreateTransfer = () => {
       throw new FetchError(resp.data);
     },
     onSuccess: async () => {
-      // Two legs, two accounts. Reports are untouched: transfer legs are already
-      // excluded from them by default, so nothing they show can have changed.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
         queryClient.invalidateQueries({ queryKey: ['transfers'] }),

@@ -1,7 +1,3 @@
-/**
- * Projects: a label with a budget, not a container. Spending stays in its account's ledger.
- */
-
 import type {
   CurrencyCode,
   IsoDate,
@@ -34,9 +30,7 @@ export interface ProjectSummary {
   budget: Minor | null;
   outflow: Minor;
   inflow: Minor;
-  /** Net cash out the door (outflow - inflow). Compare this to `budget`. */
   spent: Minor;
-  /** Sum of future scheduled items linked to the project. */
   committed: Minor;
   projectedTotal: Minor;
   budgetRemaining: Minor | null;
@@ -54,6 +48,5 @@ export interface ProjectSummary {
     transactionCount: number;
   }[];
   upcoming: Occurrence[];
-  /** More than one entry means the totals above mix currencies. */
   currenciesInvolved: CurrencyCode[];
 }

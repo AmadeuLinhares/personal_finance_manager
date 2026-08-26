@@ -12,8 +12,6 @@ export function Transactions() {
   const accountsQuery = useGetAccounts({ includeBalances: false });
 
   const { data, error, isPending, isError, isFetching, refetch } = useGetTransactions(query, {
-    // Paging keeps the previous page on screen instead of collapsing the table
-    // into a skeleton — the rows are about to be replaced, not to disappear.
     placeholderData: (previous) => previous,
   });
 

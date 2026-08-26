@@ -25,11 +25,6 @@ export const fields = {
   id: z.string().trim().min(1).max(64),
 };
 
-/**
- * The closed sets of values this API accepts come from @pfm/contracts, so the
- * client's types and these validators are the same declaration. Re-exported from
- * here because every route already reaches for them through this module.
- */
 export {
   ACCOUNT_TYPES,
   CATEGORY_KINDS,
@@ -37,7 +32,6 @@ export {
   GRANULARITIES,
   PROJECT_STATUSES,
   TRANSACTION_STATUSES,
-  /** Named ScheduledItemKind on the client; the routes here say SCHEDULED_KINDS. */
   SCHEDULED_ITEM_KINDS as SCHEDULED_KINDS,
 } from '@pfm/contracts';
 

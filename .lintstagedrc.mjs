@@ -1,6 +1,3 @@
-// lint-staged runs every task from the git root and matches globs against
-// root-relative paths, even for configs nested in a workspace. So the globs are
-// prefixed here, and each command is routed to the package that owns the binary.
 const frontend = 'pnpm --filter @pfm/frontend exec';
 const ui = 'pnpm --filter @pfm/ui exec';
 const tokens = 'pnpm --filter @pfm/tokens exec';

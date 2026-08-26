@@ -10,8 +10,6 @@ const meta = {
 
 export default meta;
 
-// Literal class strings: Tailwind scans source text, so `bg-accent-${step}`
-// would generate nothing at all.
 const ACCENT_RAMP = [
   ['100', 'bg-accent-100'],
   ['200', 'bg-accent-200'],
