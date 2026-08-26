@@ -1,5 +1,5 @@
 import { type BudgetProjection, type Occurrence, type UpcomingResponse } from '@pfm/contracts';
-import { formatMoney, toIsoDate } from '@pfm/ui';
+import { formatDate, formatMoney, toIsoDate } from '@pfm/ui';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { expect, test } from 'vitest';
 
@@ -7,6 +7,11 @@ import { Planning } from './Planning';
 import { renderScreen, stubFetch } from '@test/harness';
 
 const noop = () => undefined;
+
+const dayOfThisMonth = (dayOfMonth: number) => {
+  const now = new Date();
+  return toIsoDate(new Date(now.getFullYear(), now.getMonth(), dayOfMonth));
+};
 
 const day = (offset: number) => {
   const now = new Date();
@@ -190,20 +195,67 @@ test('a refused post shows the API code instead of failing silently', async () =
   expect(alert.textContent).toContain('That occurrence was already posted.');
 });
 
-test('the horizon moves the end of both windows at once', async () => {
+test('one window drives both requests, on both ends', async () => {
   const stub = renderPlanning();
   await screen.findByText('Hydro');
 
-  const threeMonths = stub.lastTo('/scheduled-items/occurrences')?.params.get('to');
-  expect(stub.lastTo('/projections/budget')?.params.get('to')).toBe(threeMonths);
+  const occurrences = stub.lastTo('/scheduled-items/occurrences')?.params;
+  const projection = stub.lastTo('/projections/budget')?.params;
+  expect(projection?.get('from')).toBe(occurrences?.get('from'));
+  expect(projection?.get('to')).toBe(occurrences?.get('to'));
+});
 
-  fireEvent.click(screen.getByRole('radio', { name: '6 months' }));
+test('the range is free, not a preset — an arbitrary date goes to both requests', async () => {
+  const stub = renderPlanning();
+  await screen.findByText('Hydro');
+
+  const before = stub.lastTo('/scheduled-items/occurrences')?.params.get('from');
+  const twentieth = dayOfThisMonth(20);
+
+  fireEvent.click(screen.getByRole('button', { name: /^Window from/ }));
+  fireEvent.click(screen.getByRole('button', { name: formatDate(twentieth, { year: true }) }));
 
   await waitFor(() => {
-    const sixMonths = stub.lastTo('/scheduled-items/occurrences')?.params.get('to');
-    expect(sixMonths).not.toBe(threeMonths);
-    expect(stub.lastTo('/projections/budget')?.params.get('to')).toBe(sixMonths);
+    expect(stub.lastTo('/scheduled-items/occurrences')?.params.get('from')).toBe(twentieth);
   });
+  expect(twentieth).not.toBe(before);
+  expect(stub.lastTo('/projections/budget')?.params.get('from')).toBe(twentieth);
+});
+
+const occurrenceTable = () => screen.getByRole('table', { name: /Upcoming bills/ });
+
+const manyOccurrences = (count: number) =>
+  Array.from({ length: count }, (_, index) =>
+    occurrence({
+      scheduledItemId: `sch_${String(index)}`,
+      name: `Item ${String(index)}`,
+      date: day(index),
+      amount: -1000,
+    }),
+  );
+
+test('a window under the threshold puts every row in the DOM', async () => {
+  renderPlanning({
+    '/scheduled-items/occurrences': () => ({ body: upcoming(manyOccurrences(40)) }),
+  });
+
+  await screen.findByText('Item 0');
+  expect(screen.getByText('Item 39')).toBeTruthy();
+  expect(occurrenceTable().getAttribute('aria-rowcount')).toBeNull();
+});
+
+test('a long window stops putting every row in the DOM, and declares the real total', async () => {
+  renderPlanning({
+    '/scheduled-items/occurrences': () => ({ body: upcoming(manyOccurrences(400)) }),
+  });
+
+  const table = await waitFor(() => {
+    const found = occurrenceTable();
+    expect(found.getAttribute('aria-rowcount')).toBe('401');
+    return found;
+  });
+
+  expect(table.querySelectorAll('tbody tr[data-index]').length).toBeLessThan(60);
 });
 
 test('the window opens at the first of the month, not at today', async () => {

@@ -63,7 +63,7 @@ composition of those three rather than a fifth thing to build.
 | **Overview**     | —          | A preview of each of the three below, read against the header's date. It owns no data: every request on it is one of theirs   |
 | **Transactions** | 1          | Paged ledger; filters for account, status, direction, full date range and search, all as query params; running balance column |
 | **Reports**      | 3          | Expenses by category for a month, against budget, with a leaf/rolled-up toggle and the excluded rows named                    |
-| **Planning**     | 4          | Upcoming bills and income with post/skip/undo per date, and a balance projection with the actual/forecast seam drawn          |
+| **Planning**     | 4          | Upcoming bills and income with post/skip/undo per date, a free date window driving both panels, and the actual/forecast seam  |
 | _the header_     | 2          | "Balance as of" any date, on every screen                                                                                     |
 
 User story 2 has no screen of its own on purpose. A balance is not a
@@ -236,11 +236,39 @@ if you get it wrong.
 out-of-scope transactions are counted and named on screen. A total that silently
 excludes money is a wrong total presented confidently.
 
-**Large lists: paged, not virtualised — for now.** The default seed is ~1,100
-rows and `scale: 10` gives ~6,600. Paging is 8 rows a page against the server,
-which is correct at any size; virtualisation would only matter for a "show
-everything" view that does not exist yet. I have not measured it, and I would
-measure before building it.
+**Large lists: paged where the API pages, virtualised where it does not.** Two
+lists, two answers, and the API decided which.
+
+The ledger pages. `GET /transactions` takes `page` and `pageSize` and returns
+`meta.totalPages`, so the client asks for 8 rows at a time and never holds more.
+That is correct at any size — the default seed is ~1,100 rows and `scale: 10`
+gives ~6,600 — and it is why there is nothing to virtualise there.
+
+`GET /scheduled-items/occurrences` does not page. No `page` in the filters, no
+`meta` in the response: it expands every rule across the window and returns the
+lot. That was invisible while the window was a two-option preset, and it stopped
+being invisible the moment the window became a free date range. So I measured what
+the endpoint actually returns:
+
+| window   | occurrences |
+| -------- | ----------- |
+| 1 year   | 157         |
+| 3 years  | 443         |
+| 5 years  | 729         |
+| 10 years | 1,445       |
+
+At roughly 145 rows a year, a reachable window is 1,445 rows of five cells each —
+about 14,000 nodes. The occurrence table is virtualised with
+`@tanstack/react-virtual`, and only **above 50 rows**: below that the machinery
+costs more than it saves, and the default window is twelve. The table carries
+`aria-rowcount` and each row its `aria-rowindex`, because a virtual list that does
+not declare the total it is a window onto is a list a screen reader cannot count.
+
+What that cost: 24 kB raw, 8 kB gzipped. What it is worth knowing: the threshold
+and the row estimate are guesses that a browser would sharpen, and happy-dom
+renders nothing at zero height, so what the tests prove is the mechanism — every
+row present under the threshold, the DOM holding a fraction of them above it, and
+the real total declared — not the scroll behaviour.
 
 ---
 
@@ -262,7 +290,9 @@ Three decisions worth naming, one of which cost something:
 - **The chart is recharts, and it is the most expensive line in the repo.**
   `TrendChart` was hand-rolled SVG first. Moving it to recharts took the bundle
   from 407 kB raw / 127 kB gzip to **762 kB / 232 kB** — the library is roughly
-  half of what ships, for one line chart. What it bought: a tooltip, an axis and
+  half of what ships, for one line chart. (The client is 786 kB / 240 kB today;
+  the other 24 kB is the virtualiser, which earned its place — see Handling
+  real-world data.) What it bought: a tooltip, an axis and
   responsive resizing I would otherwise maintain, and a component whose props did
   not change, so the seam between actuals and forecast is still drawn by our code
   and still tested. Worth knowing before the next chart: the second one is free,

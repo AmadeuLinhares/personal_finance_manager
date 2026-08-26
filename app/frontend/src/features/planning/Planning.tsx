@@ -1,5 +1,6 @@
 import {
   Button,
+  DatePicker,
   DateText,
   Divider,
   EmptyState,
@@ -7,8 +8,6 @@ import {
   Kicker,
   Money,
   Notice,
-  Segmented,
-  SegmentedOption,
   Skeleton,
 } from '@pfm/ui';
 import { Plus } from 'lucide-react';
@@ -21,25 +20,21 @@ import { useGetBudgetProjection } from '@/http/queries/projections/useGetBudgetP
 import { useGetOccurrences } from '@/http/queries/scheduled-items/useGetOccurrences';
 import { endOfMonthsAhead, startOfThisMonth } from '@/utils/window';
 
-const HORIZONS = [3, 6] as const;
-
 export interface PlanningProps {
   onSchedule: () => void;
 }
 
 export function Planning({ onSchedule }: PlanningProps) {
-  const [horizon, setHorizon] = useState<number>(3);
+  const [from, setFrom] = useState(startOfThisMonth);
+  const [to, setTo] = useState(() => endOfMonthsAhead(3));
   const actions = useOccurrenceActions();
-
-  const from = startOfThisMonth();
-  const to = endOfMonthsAhead(horizon);
 
   const occurrencesQuery = useGetOccurrences(
     { from, to },
     { placeholderData: (previous) => previous },
   );
   const projectionQuery = useGetBudgetProjection(
-    { to, granularity: 'month' },
+    { from, to, granularity: 'month' },
     { placeholderData: (previous) => previous },
   );
 
@@ -58,20 +53,24 @@ export function Planning({ onSchedule }: PlanningProps) {
         </div>
 
         <div className='flex flex-wrap items-center gap-3'>
-          <Segmented label='Horizon'>
-            {HORIZONS.map((months) => (
-              <SegmentedOption
-                key={months}
-                name='horizon'
-                checked={horizon === months}
-                onChange={() => {
-                  setHorizon(months);
-                }}
-              >
-                {months} months
-              </SegmentedOption>
-            ))}
-          </Segmented>
+          <DatePicker
+            aria-label='Window from'
+            className='w-[170px]'
+            max={to}
+            value={from}
+            onChange={(next) => {
+              setFrom(next ?? startOfThisMonth());
+            }}
+          />
+          <DatePicker
+            aria-label='Window to'
+            className='w-[170px]'
+            min={from}
+            value={to}
+            onChange={(next) => {
+              setTo(next ?? endOfMonthsAhead(3));
+            }}
+          />
 
           <Button variant='primary' className='whitespace-nowrap' onClick={onSchedule}>
             <Plus className='size-3.5' aria-hidden='true' />
@@ -127,7 +126,7 @@ export function Planning({ onSchedule }: PlanningProps) {
             <EmptyState
               className='py-8'
               title='Nothing scheduled in this window'
-              description='Widen the horizon, or schedule an item — a rule starts generating dates immediately.'
+              description='Widen the window, or schedule an item — a rule starts generating dates immediately.'
             />
           ) : (
             <>
@@ -168,11 +167,7 @@ export function Planning({ onSchedule }: PlanningProps) {
               }}
             />
           ) : projection === undefined ? null : (
-            <ProjectionPanel
-              projection={projection}
-              horizon={horizon}
-              isFetching={projectionQuery.isFetching}
-            />
+            <ProjectionPanel projection={projection} isFetching={projectionQuery.isFetching} />
           )}
         </section>
       </div>

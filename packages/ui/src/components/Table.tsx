@@ -1,4 +1,5 @@
 import {
+  type ComponentPropsWithRef,
   type HTMLAttributes,
   type ReactNode,
   type TdHTMLAttributes,
@@ -60,6 +61,6 @@ export function Td({
   );
 }
 
-export function Tr({ className, ...rest }: HTMLAttributes<HTMLTableRowElement>) {
+export function Tr({ className, ...rest }: ComponentPropsWithRef<'tr'>) {
   return <tr className={cn('hover:bg-ink/4', className)} {...rest} />;
 }

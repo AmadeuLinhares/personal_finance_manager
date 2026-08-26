@@ -5,11 +5,10 @@ import { PROJECTION_SEAM, toProjectionSeries } from '@/utils/projectionSeries';
 
 export interface ProjectionPanelProps {
   projection: BudgetProjection;
-  horizon: number;
   isFetching: boolean;
 }
 
-export function ProjectionPanel({ projection, horizon, isFetching }: ProjectionPanelProps) {
+export function ProjectionPanel({ projection, isFetching }: ProjectionPanelProps) {
   return (
     <div aria-busy={isFetching}>
       <TrendChart
@@ -24,13 +23,15 @@ export function ProjectionPanel({ projection, horizon, isFetching }: ProjectionP
 
       <div className='mt-3 flex flex-wrap gap-3'>
         <Card className='flex-1'>
-          <CardKicker>Ending balance · {horizon} months</CardKicker>
+          <CardKicker>
+            Ending balance · <DateText value={projection.range.to} year />
+          </CardKicker>
           <CardTitle className='text-[26px] tabular-nums'>
             <Money minorUnits={projection.endingBalance} colorInflow={false} />
           </CardTitle>
           <CardMeta className='tabular-nums'>
-            <Money minorUnits={projection.endingBalance - projection.startingBalance} signed /> vs
-            today
+            <Money minorUnits={projection.endingBalance - projection.startingBalance} signed /> over
+            the window
           </CardMeta>
         </Card>
         <Card className='flex-1'>
