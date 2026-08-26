@@ -1,9 +1,6 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "pnpm --filter @pfm/frontend preview --strictPort",
-      "startServerReadyPattern": "Local:",
-      "startServerReadyTimeout": 30000,
       "url": ["http://localhost:4173/"],
       "numberOfRuns": 3,
       "settings": {

@@ -5,7 +5,9 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 const API_PORT = 4000;
+const PREVIEW_PORT = 4173;
 const HEALTH = `http://localhost:${String(API_PORT)}/api/health`;
+const PREVIEW = `http://localhost:${String(PREVIEW_PORT)}/`;
 const READY_TIMEOUT_MS = 20_000;
 const POLL_MS = 250;
 
@@ -47,19 +49,19 @@ const resolveChrome = () => {
   return [...CHROME_CANDIDATES, ...puppeteerChromes()].find((path) => existsSync(path)) ?? null;
 };
 
-const isUp = async () => {
+const answers = async (url) => {
   try {
-    const response = await fetch(HEALTH);
+    const response = await fetch(url);
     return response.ok;
   } catch {
     return false;
   }
 };
 
-const untilReady = async () => {
+const untilReady = async (url) => {
   const deadline = Date.now() + READY_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    if (await isUp()) return true;
+    if (await answers(url)) return true;
     await wait(POLL_MS);
   }
   return false;
@@ -77,14 +79,28 @@ if (chrome === null) {
 }
 console.log(`Chrome: ${chrome}`);
 
-const borrowed = await isUp();
+const borrowed = await answers(HEALTH);
 
 let api = null;
 let apiExited = false;
+let preview = null;
+let previewExited = false;
 
 const stopApi = () => {
   if (api !== null && !apiExited) api.kill('SIGTERM');
 };
+
+const stopPreview = () => {
+  if (preview !== null && !previewExited) preview.kill('SIGTERM');
+};
+
+const stopAll = () => {
+  stopPreview();
+  stopApi();
+};
+
+process.on('SIGINT', stopAll);
+process.on('SIGTERM', stopAll);
 
 if (borrowed) {
   console.log(`Reusing the API already answering ${HEALTH}.`);
@@ -96,18 +112,31 @@ if (borrowed) {
   api.on('exit', () => {
     apiExited = true;
   });
-  process.on('SIGINT', stopApi);
-  process.on('SIGTERM', stopApi);
 
-  if (!(await untilReady())) {
-    stopApi();
+  if (!(await untilReady(HEALTH))) {
+    stopAll();
     console.error(`The API never answered ${HEALTH} within ${String(READY_TIMEOUT_MS)}ms.`);
     process.exit(1);
   }
   console.log(`Started the API on :${String(API_PORT)}.`);
 }
 
-console.log('Running Lighthouse against the production build.');
+preview = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--strictPort'], {
+  cwd: 'app/frontend',
+  stdio: ['ignore', 'ignore', 'inherit'],
+});
+preview.on('exit', () => {
+  previewExited = true;
+});
+
+if (!(await untilReady(PREVIEW))) {
+  stopAll();
+  console.error(
+    `The preview server never answered ${PREVIEW} within ${String(READY_TIMEOUT_MS)}ms.`,
+  );
+  process.exit(1);
+}
+console.log(`Serving the production build on :${String(PREVIEW_PORT)}.`);
 
 const lhci = spawn('pnpm', ['exec', 'lhci', 'autorun', ...process.argv.slice(2)], {
   env: { ...process.env, CHROME_PATH: chrome },
@@ -115,5 +144,5 @@ const lhci = spawn('pnpm', ['exec', 'lhci', 'autorun', ...process.argv.slice(2)]
 });
 
 const [code] = await once(lhci, 'exit');
-stopApi();
+stopAll();
 process.exit(code ?? 1);
