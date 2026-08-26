@@ -49,8 +49,11 @@ export function OccurrenceTable({
   return (
     <div
       ref={scroller}
-      className='overflow-auto'
-      style={virtualise ? { height: VIEWPORT } : { maxHeight: VIEWPORT }}
+      style={{
+        overflow: 'auto',
+        overscrollBehavior: 'contain',
+        ...(virtualise ? { height: VIEWPORT } : { maxHeight: VIEWPORT }),
+      }}
       aria-busy={isFetching}
     >
       <Table
