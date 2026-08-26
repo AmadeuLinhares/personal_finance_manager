@@ -1,12 +1,11 @@
 import { type Occurrence } from '@pfm/contracts';
-import { Table, Th, VisuallyHidden } from '@pfm/ui';
+import { VisuallyHidden, cn } from '@pfm/ui';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
 
-import { OccurrenceRow } from './OccurrenceRow';
+import { CELLS, OccurrenceRow } from './OccurrenceRow';
 import { occurrenceKey } from '@/utils/occurrence';
 
-const COLUMNS = 5;
 const ROW_ESTIMATE = 45;
 const VIEWPORT = 480;
 const VIRTUALISE_ABOVE = 50;
@@ -48,36 +47,41 @@ export function OccurrenceTable({
 
   return (
     <div
-      ref={scroller}
-      style={{
-        overflow: 'auto',
-        overscrollBehavior: 'contain',
-        ...(virtualise ? { height: VIEWPORT } : { maxHeight: VIEWPORT }),
-      }}
+      role='table'
+      className='overflow-x-auto'
+      aria-label='Upcoming bills and income, earliest first'
+      aria-rowcount={virtualise ? occurrences.length + 1 : undefined}
       aria-busy={isFetching}
     >
-      <Table
-        caption='Upcoming bills and income, earliest first'
-        aria-rowcount={virtualise ? occurrences.length + 1 : undefined}
+      <div
+        role='row'
+        aria-rowindex={virtualise ? 1 : undefined}
+        className={cn(
+          CELLS,
+          'border-b border-divider py-2 text-meta tracking-[0.08em] text-ink/70 uppercase',
+        )}
       >
-        <thead className='sticky top-0 z-1 bg-bg'>
-          <tr aria-rowindex={virtualise ? 1 : undefined}>
-            <Th>Due</Th>
-            <Th>Item</Th>
-            <Th>Status</Th>
-            <Th numeric>Amount</Th>
-            <Th numeric>
-              <VisuallyHidden>Actions</VisuallyHidden>
-            </Th>
-          </tr>
-        </thead>
-        <tbody>
-          {above > 0 ? (
-            <tr aria-hidden='true'>
-              <td colSpan={COLUMNS} style={{ height: above, padding: 0 }} />
-            </tr>
-          ) : null}
+        <span role='columnheader'>Due</span>
+        <span role='columnheader'>Item</span>
+        <span role='columnheader'>Status</span>
+        <span role='columnheader' className='text-right'>
+          Amount
+        </span>
+        <span role='columnheader' className='text-right'>
+          <VisuallyHidden>Actions</VisuallyHidden>
+        </span>
+      </div>
 
+      <div
+        ref={scroller}
+        role='rowgroup'
+        style={{
+          overflowY: 'auto',
+          overscrollBehavior: 'contain',
+          ...(virtualise ? { height: VIEWPORT } : { maxHeight: VIEWPORT }),
+        }}
+      >
+        <div style={{ paddingTop: above, paddingBottom: below }}>
           {visible.map(({ index, occurrence }) => {
             const key = occurrenceKey(occurrence);
 
@@ -100,14 +104,8 @@ export function OccurrenceTable({
               />
             );
           })}
-
-          {below > 0 ? (
-            <tr aria-hidden='true'>
-              <td colSpan={COLUMNS} style={{ height: below, padding: 0 }} />
-            </tr>
-          ) : null}
-        </tbody>
-      </Table>
+        </div>
+      </div>
     </div>
   );
 }
