@@ -35,7 +35,7 @@ pnpm --filter @pfm/frontend preview   # serve that build on :4173, still proxyin
 
 |                                               |                                                                     |
 | --------------------------------------------- | ------------------------------------------------------------------- |
-| `pnpm test`                                   | 199 tests with coverage gates — 52 API, 86 design system, 61 client |
+| `pnpm test`                                   | 208 tests with coverage gates — 52 API, 86 design system, 70 client |
 | `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                              |
 | `pnpm storybook`                              | the design system in isolation                                      |
 | `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions)              |
@@ -258,26 +258,31 @@ endpoint actually returns:
 | 5 years  | 729         |
 | 10 years | 1,445       |
 
-Roughly 145 rows a year. Today every one of them is rendered, inside a 500px
-scroll region with `overscroll-behavior: contain` so reaching the end of the list
-does not hand the wheel to the page. A test asserts that all 400 rows of a long
-window arrive, because the failure mode of a capped list is silently dropping the
-tail.
+Roughly 145 rows a year, five cells each — about 14,000 nodes at ten years, and
+ten years is two clicks away. So the occurrence list is virtualised with
+`@tanstack/react-virtual`, and only **above 50 rows**: below that the machinery
+costs more than it saves and the default window is twelve, so there are two code
+paths on purpose rather than one that is wrong at one end. The table declares
+`aria-rowcount` and each row its `aria-rowindex`, because a virtual list that does
+not say what total it is a window onto is a list a screen reader cannot count. Cost:
+24 kB raw, 8 kB gzipped.
 
-**I built the virtualised version and took it out again**, which is worth saying
-rather than hiding. `@tanstack/react-virtual` inside the existing `<table>` leaked
-its virtual height into the page: the outer scrollbar grew in proportion to the
-inner one. Spacer `<tr>`s with no cells collapse, spacer `<td>`s join row-height
-distribution, and `border-collapse` redistributes borders across the whole table —
-every trick for occupying the space of unrendered rows has to survive the table's
-own layout algorithm, and with no browser on this machine I was working around
-those rules blind. Rewriting the list as a `div` grid with table roles did fix it,
-but it left Planning rendering a table one way and Transactions another, for a
-problem that starts at 1,445 rows in a window nobody has asked for yet.
+**This is where the session's worst bug lived, and it was not the virtualiser.**
+Scrolling the list grew the _page_, in proportion to the inner scroll. Five
+diagnoses died on it — a spacer `<tr>` with no cells (a real bug, but not this
+one), a `<table>` as the direct child of an overflow box, a block box in between —
+and the list was rewritten as a `div` grid and back, and virtualisation removed and
+restored, for nothing. The cause was `VisuallyHidden`: see "where it fought me"
+under Design system. `position: relative` on the scroll region was the whole fix,
+and with it in place the virtualiser behaves.
 
-So the measurement stands, the numbers are above, and the honest state is a scroll
-region plus a test that the tail is not dropped. Virtualisation goes back in when
-the window is wide enough to need it, and it goes in as a list rather than a table.
+Two things that outlast the bug. The measurement above is why virtualisation is
+there at all — the README's own rule is to measure before building, and 1,445 rows
+is the number that earned it. And what the tests can prove is bounded: happy-dom
+gives every element zero height, so they assert the mechanism — every row in the DOM
+under the threshold, a fraction of them above it, the real total declared — and not
+the scrolling. The threshold and the 45px row estimate are numbers a browser would
+sharpen.
 
 ---
 
@@ -299,7 +304,8 @@ Three decisions worth naming, one of which cost something:
 - **The chart is recharts, and it is the most expensive line in the repo.**
   `TrendChart` was hand-rolled SVG first. Moving it to recharts took the bundle
   from 407 kB raw / 127 kB gzip to **762 kB / 232 kB** — the library is roughly
-  half of what ships, for one line chart. What it bought: a tooltip, an axis and
+  half of what ships, for one line chart. (The client builds at 787 kB / 240 kB
+  today; the other 25 kB is the list virtualiser.) What it bought: a tooltip, an axis and
   responsive resizing I would otherwise maintain, and a component whose props did
   not change, so the seam between actuals and forecast is still drawn by our code
   and still tested. Worth knowing before the next chart: the second one is free,
@@ -430,14 +436,14 @@ stands:
 
 |                | statements | branches | functions | lines |
 | -------------- | ---------- | -------- | --------- | ----- |
-| `@pfm/ui`      | 87.4%      | 82.6%    | 88.3%     | 90.0% |
-| `app/frontend` | 91.5%      | 85.1%    | 89.3%     | 91.8% |
+| `@pfm/ui`      | 87.4%      | 82.4%    | 88.3%     | 90.0% |
+| `app/frontend` | 91.9%      | 83.6%    | 89.2%     | 92.1% |
 
 Storybook stories, `main.tsx`, the barrels and the ambient `.d.ts` are excluded —
 none of them is code that can be wrong. Everything else counts, including files no
 test imports, so the number cannot be flattered by leaving a file out.
 
-**Testing — what, and why that.** 61 client tests, and the seam is `fetch`, not
+**Testing — what, and why that.** 70 client tests, and the seam is `fetch`, not
 the query hooks. A test that mocks `useGetTransactions` proves the component can
 render its own mock; it would pass with the filters wired to nothing. Stubbing
 the transport keeps the query keys, the param building and the error mapping
