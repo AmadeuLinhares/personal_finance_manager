@@ -6,6 +6,7 @@ import { useRef } from 'react';
 import { OccurrenceRow } from './OccurrenceRow';
 import { occurrenceKey } from '@/utils/occurrence';
 
+const COLUMNS = 5;
 const ROW_ESTIMATE = 45;
 const VIEWPORT = 480;
 const VIRTUALISE_ABOVE = 50;
@@ -49,7 +50,7 @@ export function OccurrenceTable({
     <div
       ref={scroller}
       className='overflow-auto'
-      style={{ maxHeight: VIEWPORT }}
+      style={virtualise ? { height: VIEWPORT } : { maxHeight: VIEWPORT }}
       aria-busy={isFetching}
     >
       <Table
@@ -68,7 +69,11 @@ export function OccurrenceTable({
           </tr>
         </thead>
         <tbody>
-          {above > 0 ? <tr aria-hidden='true' style={{ height: above }} /> : null}
+          {above > 0 ? (
+            <tr aria-hidden='true'>
+              <td colSpan={COLUMNS} style={{ height: above, padding: 0 }} />
+            </tr>
+          ) : null}
 
           {visible.map(({ index, occurrence }) => {
             const key = occurrenceKey(occurrence);
@@ -93,7 +98,11 @@ export function OccurrenceTable({
             );
           })}
 
-          {below > 0 ? <tr aria-hidden='true' style={{ height: below }} /> : null}
+          {below > 0 ? (
+            <tr aria-hidden='true'>
+              <td colSpan={COLUMNS} style={{ height: below, padding: 0 }} />
+            </tr>
+          ) : null}
         </tbody>
       </Table>
     </div>
