@@ -1,10 +1,15 @@
 import { type Occurrence } from '@pfm/contracts';
 import { Table, Th, VisuallyHidden } from '@pfm/ui';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useRef } from 'react';
 
 import { OccurrenceRow } from './OccurrenceRow';
 import { occurrenceKey } from '@/utils/occurrence';
 
+const COLUMNS = 5;
+const ROW_ESTIMATE = 45;
 const VIEWPORT = 500;
+const VIRTUALISE_ABOVE = 50;
 
 export interface OccurrenceTableProps {
   occurrences: Occurrence[];
@@ -23,48 +28,87 @@ export function OccurrenceTable({
   onSkip,
   onUnskip,
 }: OccurrenceTableProps) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const virtualise = occurrences.length > VIRTUALISE_ABOVE;
+
+  const virtualizer = useVirtualizer({
+    count: virtualise ? occurrences.length : 0,
+    getScrollElement: () => scroller.current,
+    estimateSize: () => ROW_ESTIMATE,
+    overscan: 8,
+  });
+
+  const slice = virtualizer.getVirtualItems();
+  const above = slice.length === 0 ? 0 : slice[0].start;
+  const below = slice.length === 0 ? 0 : virtualizer.getTotalSize() - slice[slice.length - 1].end;
+
+  const visible = virtualise
+    ? slice.map((row) => ({ index: row.index, occurrence: occurrences[row.index] }))
+    : occurrences.map((occurrence, index) => ({ index, occurrence }));
+
   return (
     <div
-      style={{ overflow: 'auto', overscrollBehavior: 'contain', maxHeight: VIEWPORT }}
+      ref={scroller}
+      style={{
+        position: 'relative',
+        overflow: 'auto',
+        overscrollBehavior: 'contain',
+        ...(virtualise ? { height: VIEWPORT } : { maxHeight: VIEWPORT }),
+      }}
       aria-busy={isFetching}
     >
-      <div style={{ display: 'block', height: 'max-content' }}>
-        <Table caption='Upcoming bills and income, earliest first'>
-          <thead className='sticky top-0 bg-bg'>
-            <tr>
-              <Th>Due</Th>
-              <Th>Item</Th>
-              <Th>Status</Th>
-              <Th numeric>Amount</Th>
-              <Th numeric>
-                <VisuallyHidden>Actions</VisuallyHidden>
-              </Th>
+      <Table
+        caption='Upcoming bills and income, earliest first'
+        aria-rowcount={virtualise ? occurrences.length + 1 : undefined}
+      >
+        <thead className='sticky top-0 z-1 bg-bg'>
+          <tr aria-rowindex={virtualise ? 1 : undefined}>
+            <Th>Due</Th>
+            <Th>Item</Th>
+            <Th>Status</Th>
+            <Th numeric>Amount</Th>
+            <Th numeric>
+              <VisuallyHidden>Actions</VisuallyHidden>
+            </Th>
+          </tr>
+        </thead>
+        <tbody>
+          {above > 0 ? (
+            <tr aria-hidden='true'>
+              <td colSpan={COLUMNS} style={{ height: above, padding: 0 }} />
             </tr>
-          </thead>
-          <tbody>
-            {occurrences.map((occurrence) => {
-              const key = occurrenceKey(occurrence);
+          ) : null}
 
-              return (
-                <OccurrenceRow
-                  key={key}
-                  occurrence={occurrence}
-                  busy={pendingKey === key}
-                  onPost={() => {
-                    onPost(occurrence);
-                  }}
-                  onSkip={() => {
-                    onSkip(occurrence);
-                  }}
-                  onUnskip={() => {
-                    onUnskip(occurrence);
-                  }}
-                />
-              );
-            })}
-          </tbody>
-        </Table>
-      </div>
+          {visible.map(({ index, occurrence }) => {
+            const key = occurrenceKey(occurrence);
+
+            return (
+              <OccurrenceRow
+                key={key}
+                ref={virtualise ? virtualizer.measureElement : undefined}
+                index={virtualise ? index : undefined}
+                occurrence={occurrence}
+                busy={pendingKey === key}
+                onPost={() => {
+                  onPost(occurrence);
+                }}
+                onSkip={() => {
+                  onSkip(occurrence);
+                }}
+                onUnskip={() => {
+                  onUnskip(occurrence);
+                }}
+              />
+            );
+          })}
+
+          {below > 0 ? (
+            <tr aria-hidden='true'>
+              <td colSpan={COLUMNS} style={{ height: below, padding: 0 }} />
+            </tr>
+          ) : null}
+        </tbody>
+      </Table>
     </div>
   );
 }

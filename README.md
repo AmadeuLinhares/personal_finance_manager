@@ -313,7 +313,19 @@ Three decisions worth naming, one of which cost something:
 - **Selection is a stroke, not a fill.** Consistent across Button, Segmented and
   the calendar, and it keeps contrast where a filled state would drop it.
 
-Where it fought me: `Field` owns the label/hint/error and the aria wiring that
+Where it fought me: **`VisuallyHidden` inside a scroll region grows the page.**
+`sr-only` is `position: absolute` with no offsets, so it lands on its static
+position — but its containing block is the nearest _positioned_ ancestor, and an
+`overflow` container only clips descendants for which it is in that chain. A
+scroll region left at `position: static` therefore does not clip the hidden text
+inside it: each span extends the document down to wherever its row happens to sit.
+With a virtualised list that is proportional — scroll the list halfway and the page
+grows by half the list's height, because the rendered rows moved down. `position:
+relative` on the scroll container is the whole fix, and it is now on both tables.
+This one cost five wrong diagnoses before Amadeu found it by commenting out the
+actions cell, which is the sort of bug that only a browser tells you about.
+
+`Field` owns the label/hint/error and the aria wiring that
 goes with them, which means a component used inside it must not render its own
 label — a rule that is invisible until someone breaks it. And a portalled
 `DatePicker` panel lives outside the dialog's DOM, so its focus trap cannot reach

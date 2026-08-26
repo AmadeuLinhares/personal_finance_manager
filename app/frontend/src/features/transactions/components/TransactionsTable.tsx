@@ -11,7 +11,7 @@ export interface TransactionsTableProps {
 
 export function TransactionsTable({ rows, singleAccount, isFetching }: TransactionsTableProps) {
   return (
-    <div className='overflow-x-auto' aria-busy={isFetching}>
+    <div className='relative overflow-x-auto' aria-busy={isFetching}>
       <Table caption='Transactions, newest first'>
         <thead>
           <tr>

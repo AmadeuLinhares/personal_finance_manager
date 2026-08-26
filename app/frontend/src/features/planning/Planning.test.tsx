@@ -232,13 +232,30 @@ const manyOccurrences = (count: number) =>
     }),
   );
 
-test('a long window renders every row it was given, none of them dropped', async () => {
+const occurrenceTable = () => screen.getByRole('table', { name: /Upcoming bills/ });
+
+test('a window under the threshold puts every row in the DOM', async () => {
+  renderPlanning({
+    '/scheduled-items/occurrences': () => ({ body: upcoming(manyOccurrences(40)) }),
+  });
+
+  await screen.findByText('Item 0');
+  expect(screen.getByText('Item 39')).toBeTruthy();
+  expect(occurrenceTable().getAttribute('aria-rowcount')).toBeNull();
+});
+
+test('a long window stops putting every row in the DOM, and declares the real total', async () => {
   renderPlanning({
     '/scheduled-items/occurrences': () => ({ body: upcoming(manyOccurrences(400)) }),
   });
 
-  await screen.findByText('Item 0');
-  expect(screen.getByText('Item 399')).toBeTruthy();
+  const table = await waitFor(() => {
+    const found = occurrenceTable();
+    expect(found.getAttribute('aria-rowcount')).toBe('401');
+    return found;
+  });
+
+  expect(table.querySelectorAll('[data-index]').length).toBeLessThan(60);
 });
 
 test('the window opens at the first of the month, not at today', async () => {

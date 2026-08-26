@@ -1,5 +1,6 @@
 import { type Occurrence, type OccurrenceStatus } from '@pfm/contracts';
 import { Button, DateText, Money, Tag, Td, Tr, VisuallyHidden } from '@pfm/ui';
+import { type Ref } from 'react';
 
 const STATUS_VARIANT: Record<OccurrenceStatus, 'accent' | 'neutral' | 'outline'> = {
   overdue: 'accent',
@@ -14,14 +15,24 @@ export interface OccurrenceRowProps {
   onPost: () => void;
   onSkip: () => void;
   onUnskip: () => void;
+  ref?: Ref<HTMLTableRowElement>;
+  index?: number;
 }
 
-export function OccurrenceRow({ occurrence, busy, onPost, onSkip, onUnskip }: OccurrenceRowProps) {
+export function OccurrenceRow({
+  occurrence,
+  busy,
+  onPost,
+  onSkip,
+  onUnskip,
+  ref,
+  index,
+}: OccurrenceRowProps) {
   const open = occurrence.status === 'overdue' || occurrence.status === 'scheduled';
   const named = ` ${occurrence.name}, due ${occurrence.date}`;
 
   return (
-    <Tr>
+    <Tr ref={ref} data-index={index} aria-rowindex={index === undefined ? undefined : index + 2}>
       <Td numeric className='text-left'>
         <DateText value={occurrence.date} />
       </Td>
