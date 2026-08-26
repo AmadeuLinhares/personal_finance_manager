@@ -25,13 +25,15 @@ export const fields = {
   id: z.string().trim().min(1).max(64),
 };
 
-export const ACCOUNT_TYPES = ['checking', 'savings', 'credit_card', 'cash', 'investment'];
-export const TRANSACTION_STATUSES = ['posted', 'pending'];
-export const CATEGORY_KINDS = ['expense', 'income'];
-export const SCHEDULED_KINDS = ['bill', 'income'];
-export const FREQUENCIES = ['once', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'];
-export const PROJECT_STATUSES = ['active', 'planned', 'completed', 'archived'];
-export const GRANULARITIES = ['day', 'week', 'month', 'year'];
+export {
+  ACCOUNT_TYPES,
+  CATEGORY_KINDS,
+  FREQUENCIES,
+  GRANULARITIES,
+  PROJECT_STATUSES,
+  TRANSACTION_STATUSES,
+  SCHEDULED_ITEM_KINDS as SCHEDULED_KINDS,
+} from '@pfm/contracts';
 
 /** Parses a body/query with zod and turns failures into a 422 with per-field details. */
 export function parse(schema, value, { source = 'body' } = {}) {

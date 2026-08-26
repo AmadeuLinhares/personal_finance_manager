@@ -1,14 +1,3 @@
-/**
- * Classical design system — the public surface.
- *
- * Everything here is built from @pfm/tokens. A consumer imports components from
- * this module and the stylesheet from '@pfm/ui/styles.css'.
- *
- * This file is the package's `exports` entry: we ship source, not a build. Before
- * adding a build step, read "Decision: this package ships source, not a build" in
- * README.md — Tailwind's @source scan depends on src/ being what actually ships.
- */
-
 export { Bar, type BarProps } from './components/Bar';
 export { Button, type ButtonProps } from './components/Button';
 export { Card, CardBody, CardKicker, CardMeta, CardTitle, type CardProps } from './components/Card';

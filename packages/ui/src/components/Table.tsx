@@ -8,11 +8,6 @@ import {
 import { cn } from '../lib/cn';
 
 export interface TableProps extends HTMLAttributes<HTMLTableElement> {
-  /**
-   * Names the table for assistive technology. Rendered as a visually hidden
-   * `<caption>`, which is the element screen readers look for — a heading above
-   * the table is not associated with it.
-   */
   caption?: ReactNode;
 }
 
@@ -26,16 +21,11 @@ export function Table({ caption, className, children, ...rest }: TableProps) {
 }
 
 export interface CellProps {
-  /**
-   * Figures get tabular numerals and no wrap, so a column of amounts lines up.
-   * Also right-aligns, which is what a numeric column always wants.
-   */
   numeric?: boolean;
 }
 
 export function Th({
   numeric = false,
-  /** Column header by default: it is what a `<thead>` cell almost always is. */
   scope = 'col',
   className,
   ...rest

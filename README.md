@@ -3,8 +3,9 @@
 A React + TypeScript client for the [Personal Finance Manager challenge](docs/CHALLENGE.md),
 built on the in-memory API that ships with this repo.
 
-Four of the five user stories, in three screens, on a design system built here
-rather than adopted. The reasoning for every one of those choices is below.
+Four of the five user stories, in three screens and an overview that composes
+them, on a design system built here rather than adopted. The reasoning for every
+one of those choices is below.
 
 ---
 
@@ -23,12 +24,13 @@ pnpm dev
 The client's dev server proxies `/api` to the backend, so nothing is same-origin
 by accident and no CORS is involved. One `Ctrl-C` stops both.
 
-|                                               |                                                        |
-| --------------------------------------------- | ------------------------------------------------------ |
-| `pnpm test`                                   | 111 tests — 52 API, 31 design system, 28 screens       |
-| `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                 |
-| `pnpm storybook`                              | the design system in isolation                         |
-| `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions) |
+|                                               |                                                                     |
+| --------------------------------------------- | ------------------------------------------------------------------- |
+| `pnpm test`                                   | 199 tests with coverage gates — 52 API, 86 design system, 61 client |
+| `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                              |
+| `pnpm storybook`                              | the design system in isolation                                      |
+| `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions)              |
+| `pnpm lighthouse`                             | build, serve and audit the real app in Chrome                       |
 
 **To see the loading and error states**, make the API misbehave — per request
 with `?__latency=2000` or `?__error=500`, or globally:
@@ -43,10 +45,13 @@ curl -X POST localhost:4000/api/dev/settings -H 'content-type: application/json'
 ## What I built
 
 The brief says five screens rushed are worth less than three done properly, and
-that the user stories are a menu rather than a checklist. I took it literally.
+that the user stories are a menu rather than a checklist. I took it literally:
+three screens carry the four user stories I chose, and the fourth is a
+composition of those three rather than a fifth thing to build.
 
 | Screen           | User story | What it does                                                                                                                  |
 | ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Overview**     | —          | A preview of each of the three below, read against the header's date. It owns no data: every request on it is one of theirs   |
 | **Transactions** | 1          | Paged ledger; filters for account, status, direction, full date range and search, all as query params; running balance column |
 | **Reports**      | 3          | Expenses by category for a month, against budget, with a leaf/rolled-up toggle and the excluded rows named                    |
 | **Planning**     | 4          | Upcoming bills and income with post/skip/undo per date, and a balance projection with the actual/forecast seam drawn          |
@@ -55,7 +60,19 @@ that the user stories are a menu rather than a checklist. I took it literally.
 User story 2 has no screen of its own on purpose. A balance is not a
 destination — it is the number every other screen is read against, so it lives
 in the header, where changing the date changes the frame around whatever you are
-already looking at.
+already looking at. The Overview is the clearest case of that: the date in the
+header is the date its account cards are computed on, because both ask for it
+with the same filters and therefore share one request rather than showing two
+dates' numbers on one page.
+
+**The Overview is a composition, not a fifth source of truth.** Each of its four
+panels asks exactly the question the screen it previews asks — same filters, same
+query key — so opening that screen from here is a cache hit rather than a round
+trip. It is also why three query hooks live in `src/http/queries/` and not in a
+feature: an overview is by definition a second reader of every other screen's
+data. Each panel carries its own loading, error and empty state, because four
+requests are four things that can fail and a screen that blanks because one of
+them did is worse than no screen.
 
 Creating things works too: a transaction, a transfer, and a scheduled item, each
 with the API's validation errors landing under the field that caused them.
@@ -65,7 +82,7 @@ with the API's validation errors landing under the field that caused them.
 |                                      | Why                                                                                                                                                                                    |
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **User story 5 — Projects**          | Another aggregate over the same ledger, and `GET /projects` already embeds the summary, so "implementing" it would be mostly rendering. High screen cost, low argument.                |
-| **Overview and Projects screens**    | Still layout over fixtures. They are marked in the nav and carry a banner saying so — a half-wired screen that looks finished is worse than one that admits what it is.                |
+| **The Projects layout**              | It existed, unwired, over fixtures. I deleted it rather than ship it behind a "not implemented" banner: four screens that all work read better than five where one is a promise.       |
 | **CRUD for accounts and categories** | Repeats the form the transaction dialog already demonstrates. The interesting case is `DELETE /categories/:id` with `reassignTo` vs `force`, and that is a conversation, not a screen. |
 | **A router**                         | Screens are local state. Nothing deep-links yet; this is the first thing I would add, and it is a contained change.                                                                    |
 | **Auth**                             | The brief says to skip it.                                                                                                                                                             |
@@ -76,11 +93,48 @@ with the API's validation errors landing under the field that caused them.
 
 ### Server state is not client state, and the split is enforced by where code lives
 
-Everything the API owns goes through TanStack Query in `src/http/`: one hook per
-endpoint, filters typed, query keys carrying those filters. Everything the _user_
-owns — which month, which currency, which row is mid-flight — is `useState` in
-the screen. There is no store in between, because there is nothing to put in one:
-after the server state moves out, what is left is small and local.
+Everything the API owns goes through TanStack Query: one hook per endpoint,
+filters typed, query keys carrying those filters. Which folder that hook lives in
+is the rest of the argument. A request only one feature asks for sits in that
+feature's own `http/`, next to the components, hooks and pure logic of the screen
+that asks for it, and next to that screen's test. `src/http/` keeps what is
+genuinely shared: the fetch wrapper, and the five endpoints more than one feature
+reads — accounts and categories, plus the monthly report, the occurrences and the
+projection, all three of which the Overview reads as well as the screen that owns
+them.
+
+What the hook does **not** own is the contract. That lives in
+[`@pfm/contracts`](packages/contracts) and both apps import it: the shapes, the
+request bodies, the routes, and every closed set of values the API validates
+against. See that package's README for where the line falls.
+
+### The contract is declared once, and the API is what proves it
+
+The client used to carry a copy of the contract the API ships, and the API
+carried its own copy of the same vocabulary as runtime arrays in
+`src/lib/validate.js`. Two declarations of one truth, in two languages, with
+nothing to make them disagree out loud.
+
+Now each value set is an array first and a type second:
+
+```ts
+export const TRANSACTION_STATUSES = ['posted', 'pending'] as const;
+export type TransactionStatus = (typeof TRANSACTION_STATUSES)[number];
+```
+
+The API validates with the array — `z.enum(TRANSACTION_STATUSES)`, which is why
+its 422 reads _"Expected 'posted' | 'pending'"_ — and the client types with the
+union. Adding a status is one edit, and there is no second place to forget.
+
+The API is plain JavaScript and compiles nothing, so this only works because
+Node ≥ 22.18 strips types on import. The package ships source for that reason,
+like `@pfm/ui`, and its tsconfig sets `erasableSyntaxOnly` so a shape that cannot
+survive stripping fails the type-check instead of the server.
+
+Everything the _user_ owns — which month, which currency, which row is
+mid-flight — is `useState` in the screen. There is no store in between, because
+there is nothing to put in one: after the server state moves out, what is left is
+small and local.
 
 **Every filter is a query param.** Nothing is filtered, sorted or paged in the
 client. A client-side filter over one page of results is a lie about the other
@@ -212,7 +266,48 @@ story, which is where contrast and landmark problems surface. Known gaps: no
 arrow-key navigation inside the calendar grid, and no axe run over the assembled
 screens — what the screen tests assert is roles and accessible names, not colour.
 
-**Testing — what, and why that.** 28 screen tests, and the seam is `fetch`, not
+**CI runs what I run.** `.github/workflows/ci.yml` has two jobs. `checks` runs
+lint, `prettier --check`, `tsc`, knip and the test suite with its coverage gate,
+then uploads the coverage reports. `lighthouse` builds the app, serves it, and
+audits it in a real Chrome. Nothing in the pipeline is a command that exists only
+in CI — every step is one I run locally, under the same name.
+
+**Lighthouse audits the real app, not a shell.** `pnpm lighthouse` starts the API,
+serves the production build and runs Lighthouse three times against it, so the
+page being audited has real accounts, real category totals and a real projection
+on it. That needed one fix: the `/api` proxy lived only under Vite's `server`
+config, so `vite preview` was not proxying and a production build served locally
+could not reach the API at all. It is shared between `server` and `preview` now.
+
+The thresholds are in `lighthouserc.json` — accessibility, best practices and SEO
+fail the build below 0.95, 0.9 and 0.9. **Performance is a warning rather than an
+error until it has been measured on the runner**: the bundle is 762 kB raw for one
+recharts line chart, and publishing the number the pipeline actually produces is
+worth more than guessing at a floor. Two limits worth naming out loud:
+
+- **Only the Overview is audited.** Screens are local state, not routes, so there
+  is no URL for Transactions, Reports or Planning to point Lighthouse at. That is
+  the most concrete cost of having no router yet, and the audit gets wider the day
+  there is one.
+- **Desktop preset.** A ledger is read at a desk. Mobile throttling would produce
+  a worse number that says less about how this app is used — that is a choice, so
+  it is written down rather than buried in a config file.
+
+**Coverage is a gate, not a report.** `pnpm test` runs with `--coverage` and
+`vitest.config.ts` sets a floor of 80% on statements, branches, functions and
+lines in both `@pfm/ui` and the client; under it, the suite fails. Where it
+stands:
+
+|                | statements | branches | functions | lines |
+| -------------- | ---------- | -------- | --------- | ----- |
+| `@pfm/ui`      | 87.4%      | 82.6%    | 88.3%     | 90.0% |
+| `app/frontend` | 91.5%      | 85.1%    | 89.3%     | 91.8% |
+
+Storybook stories, `main.tsx`, the barrels and the ambient `.d.ts` are excluded —
+none of them is code that can be wrong. Everything else counts, including files no
+test imports, so the number cannot be flattered by leaving a file out.
+
+**Testing — what, and why that.** 61 client tests, and the seam is `fetch`, not
 the query hooks. A test that mocks `useGetTransactions` proves the component can
 render its own mock; it would pass with the filters wired to nothing. Stubbing
 the transport keeps the query keys, the param building and the error mapping

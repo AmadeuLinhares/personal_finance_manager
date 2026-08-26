@@ -1,19 +1,9 @@
-/*
- * The one stylesheet a consumer needs.
- *
- * It pulls in the tokens and tells Tailwind to scan this package's source, so a
- * class used only inside a component still gets generated in the app's bundle.
- * `@source` resolves relative to this file, which is why the app does not have
- * to know where @pfm/ui lives on disk.
- */
-
 @import '@pfm/tokens/theme.css';
 
 @source './src';
 
 @layer base {
   html {
-    /* Figures stand in columns all over this app; prose keeps its text figures. */
     font-feature-settings: normal;
   }
 
@@ -25,7 +15,6 @@
     line-height: 1.55;
   }
 
-  /* Keyboard focus is themed everywhere — never the browser's blue ring. */
   :focus {
     outline: none;
   }

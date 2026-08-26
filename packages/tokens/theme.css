@@ -1,34 +1,17 @@
-/*
- * Classical — design tokens as a Tailwind v4 theme.
- *
- * Ported verbatim from the design system's styles.css, which is the source of
- * truth for the look. Every value here maps to the token map in section 13 of
- * Components.dc.html. Nothing in the UI or the app should carry a raw hex, font
- * name or px value that lives in this file.
- */
-
 @theme {
-  /* Tailwind's stock palette is dropped on purpose: the system is mono and has
-     no red, so `text-red-500` should not resolve to anything. Keep the four
-     keywords that are not really colors. */
   --color-*: initial;
   --color-transparent: transparent;
   --color-current: currentColor;
   --color-white: #fff;
   --color-black: #000;
 
-  /* — ground — */
   --color-bg: #f3f2f2;
   --color-surface: #eae9e9;
   --color-ink: #201f1d;
   --color-divider: color-mix(in srgb, #201f1d 16%, transparent);
 
-  /* — brand — the accent proper, distinct from the ramp's 500 step — */
   --color-accent: #b68235;
 
-  /* Tonal ramps, generated in OKLCH on one shared lightness scale, so the same
-     step of any ramp carries the same visual weight.
-     100–300 tinted fills and hovers · 500 base · 700–900 text on tints, pressed. */
   --color-neutral-100: #f8f4f4;
   --color-neutral-200: #eae7e7;
   --color-neutral-300: #d7d3d3;
@@ -49,8 +32,6 @@
   --color-accent-800: #5a3b0a;
   --color-accent-900: #3a270d;
 
-  /* The system is mono: accent-2 is a machine-derived stand-in kept only so both
-     sets resolve. Treat it as the same role as accent. */
   --color-accent-2-100: #fff3e4;
   --color-accent-2-200: #ffe3be;
   --color-accent-2-300: #f5cd96;
@@ -61,7 +42,6 @@
   --color-accent-2-800: #573d14;
   --color-accent-2-900: #382810;
 
-  /* — type — Cormorant Garamond over Lora. No bold: 600 is the ceiling. — */
   --font-heading: 'Cormorant Garamond', ui-serif, Georgia, serif;
   --font-body: Lora, ui-serif, Georgia, serif;
 
@@ -82,8 +62,6 @@
   --text-body: 15px;
   --text-body--line-height: 1.55;
 
-  /* Interface sizes. The display scale above is for content; these are the
-     sizes the controls, tables and meta lines actually set at. */
   --text-ui: 14px;
   --text-ui--line-height: 1.2;
   --text-ui-sm: 13px;
@@ -91,22 +69,16 @@
   --text-meta: 11px;
   --text-micro: 10px;
 
-  /* — spacing — the scale is a single 4.6px step: 1·2·3·4·6·8 reproduces
-     4.6 · 9.2 · 13.8 · 18.4 · 27.6 · 36.8 exactly, and every step between
-     comes for free. Density 1.15x is already baked in. — */
   --spacing: 4.6px;
 
-  /* — radii — */
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 7px;
 
-  /* — elevation — a whisper, tinted with ink, tuned to this ground — */
   --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
   --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
   --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
 
-  /* — motion — */
   --animate-skeleton: skeleton 1.4s ease-in-out infinite;
 }
 

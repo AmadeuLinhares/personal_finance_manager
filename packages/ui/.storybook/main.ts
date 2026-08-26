@@ -8,8 +8,6 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
-  // Storybook has no vite.config.ts of its own here, so Tailwind is added to the
-  // one it builds internally.
   viteFinal: (viteConfig) => ({
     ...viteConfig,
     plugins: [...(viteConfig.plugins ?? []), tailwindcss()],

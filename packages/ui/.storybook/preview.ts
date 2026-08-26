@@ -9,7 +9,6 @@ const preview: Preview = {
     controls: { expanded: true },
     a11y: { test: 'error' },
     options: {
-      // Foundations first, then the primitives, then everything composed.
       storySort: {
         order: ['Foundations', 'Primitives', 'Data', 'Feedback', 'Patterns'],
       },

@@ -19,10 +19,6 @@ function draw(props: Partial<Parameters<typeof TrendChart>[0]> = {}) {
   return container;
 }
 
-// Recharts measures its container, and happy-dom lays nothing out, so the plot
-// itself cannot be asserted here — the split it is drawn from can, and that is
-// where the meaning lives.
-
 test('the actual and forecast segments meet at the seam without overlapping', () => {
   const rows = toChartRows(SERIES, 1);
 

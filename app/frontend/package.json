@@ -12,11 +12,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc -b --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
     "knip": "knip"
   },
   "dependencies": {
+    "@pfm/contracts": "workspace:*",
     "@pfm/ui": "workspace:*",
     "@tanstack/react-query": "^5.102.0",
     "lucide-react": "^1.33.0",
@@ -35,6 +36,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "@vitest/coverage-v8": "^4.1.11",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^10.8.0",
     "happy-dom": "^20.11.6",

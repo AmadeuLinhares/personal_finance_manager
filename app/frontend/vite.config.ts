@@ -4,22 +4,18 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
-// https://vite.dev/config/
+const proxy = {
+  '/api': {
+    target: 'http://localhost:4000',
+    changeOrigin: true,
+  },
+};
+
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
   resolve: {
-    // Mirrors tsconfig's paths: '@/…' is always src, so the http layer's
-    // imports do not climb '../../..' out of a screen.
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: {
-    port: 5173,
-    // Keeps fetch('/api/...') same-origin, so no CORS is involved in dev.
-    proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-    },
-  },
+  server: { port: 5173, proxy },
+  preview: { port: 4173, proxy },
 });

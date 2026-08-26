@@ -7,22 +7,13 @@ import { test } from 'vitest';
 import { Field, Input, type FieldControlProps } from '../src/components/Field.tsx';
 import { moneyRegisterOptions } from '../src/lib/masks.ts';
 
-/*
- * Node's type stripping does not handle JSX, so these use createElement. The
- * point of the file is the react-hook-form wiring, which JSX would not make any
- * clearer.
- */
-
 interface Values {
   amount: number;
 }
 
-/** A money field wired exactly the way the README documents it. */
 function Harness({ onState }: { onState: (values: Values) => void }) {
   const { register, control } = useForm<Values>({ defaultValues: { amount: 0 } });
   onState({ amount: useWatch({ control, name: 'amount' }) });
-  // children goes in the props object: FieldProps requires it, so the
-  // createElement overload that takes children as a rest argument does not match.
   return h(Field, {
     label: 'Amount',
     children: (field: FieldControlProps) =>
@@ -109,9 +100,6 @@ test('register reaches the DOM node through composeRefs', () => {
 });
 
 test('moneyRegisterOptions uses setValueAs, not valueAsNumber', () => {
-  // The two are mutually exclusive in react-hook-form, and valueAsNumber is
-  // `+value` on the raw field: `+'10,414.68'` is NaN as soon as the amount
-  // reaches a thousand, and `+''` is NaN on an empty field.
   const options: Record<string, unknown> = moneyRegisterOptions;
   assert.equal(typeof options.setValueAs, 'function');
   assert.equal(options.valueAsNumber, undefined);

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Classical design system — React components built on @pfm/tokens and Tailwind.",
+  "description": "Classical design system \u2014 React components built on @pfm/tokens and Tailwind.",
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./styles.css"
@@ -20,7 +20,7 @@
     "type-check": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "peerDependencies": {
@@ -44,6 +44,7 @@
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.8.0",
     "happy-dom": "^20.11.6",
     "prettier": "^3.9.6",

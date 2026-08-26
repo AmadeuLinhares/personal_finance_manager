@@ -14,11 +14,6 @@ import { cn } from '../lib/cn';
 import { composeRefs } from '../lib/composeRefs';
 import { formatDate, formatMonth, parseIsoDate, toIsoDate, toIsoMonth } from '../lib/format';
 
-/*
- * Month and weekday names are built once at module load, so the calendar never
- * depends on the runtime "today". `en-CA` matches formatMoney's locale — the app
- * speaks one language to the user, not one per component.
- */
 const monthName = (month: 'long' | 'short') =>
   Array.from({ length: 12 }, (_, index) =>
     new Intl.DateTimeFormat('en-CA', { month }).format(new Date(2023, index, 1)),
@@ -27,7 +22,6 @@ const monthName = (month: 'long' | 'short') =>
 const MONTHS = monthName('long');
 const MONTHS_SHORT = monthName('short');
 
-// 1 Jan 2023 was a Sunday, so this walks Sun→Sat for the weekday header.
 const WEEKDAYS = Array.from({ length: 7 }, (_, index) =>
   new Intl.DateTimeFormat('en-CA', { weekday: 'narrow' }).format(new Date(2023, 0, 1 + index)),
 );
@@ -40,51 +34,27 @@ const sameDay = (a: Date, b: Date | null) =>
   a.getDate() === b.getDate();
 
 export interface DatePickerProps {
-  /** Forwarded to the trigger, so react-hook-form can focus the field on error. */
   ref?: Ref<HTMLButtonElement>;
-  /**
-   * `'date'` reads and writes `YYYY-MM-DD`; `'month'` reads and writes `YYYY-MM`
-   * and skips the day grid entirely. Both are what the API takes — a month filter
-   * that emitted a full date would just be thrown away by the caller.
-   */
   mode?: 'date' | 'month';
   value?: string | null;
-  /** The new ISO value, or null when cleared. */
   onChange?: (value: string | null) => void;
-  /** Fired when the panel closes — wire react-hook-form's `field.onBlur` here. */
   onBlur?: () => void;
-  /** Bounds, in the same shape as `value`. */
   min?: string;
   max?: string;
   placeholder?: string;
   disabled?: boolean;
-  /**
-   * `false` renders the panel inline, absolutely positioned. Needed inside a
-   * Dialog: a portaled panel lives outside the dialog's DOM, so its focus trap
-   * cannot reach the calendar and Tab would escape the modal.
-   */
   portal?: boolean;
   id?: string;
-  /** Renders a hidden input, for an uncontrolled form post. */
   name?: string;
   className?: string;
   'aria-invalid'?: true;
   'aria-describedby'?: string;
-  /** Names the trigger where no visible label does, e.g. a filter bar. */
   'aria-label'?: string;
 }
 
 const GAP = 6;
 const PANEL_WIDTH = 288;
 
-/**
- * A calendar in the system's own chrome, because the native control is not
- * styleable and renders a different widget in every browser.
- *
- * Label, hint and error are deliberately absent: `Field` owns those, and owns the
- * id and aria wiring that goes with them. Pass this as a Field child, the same way
- * as Input and Select.
- */
 export function DatePicker({
   ref,
   mode = 'date',
@@ -111,7 +81,6 @@ export function DatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  /** A month value parses as its first day, which is all the grid needs. */
   const selected = useMemo(
     () => parseIsoDate(mode === 'month' && value ? `${value}-01` : value),
     [mode, value],
@@ -127,11 +96,6 @@ export function DatePicker({
 
   const [cursor, setCursor] = useState(() => selected ?? new Date());
 
-  /*
-   * Keep the visible month in step when the value changes from outside. Adjusting
-   * state during render is React's own recommendation for this, and avoids the
-   * setState-in-effect cascade the lint rule (rightly) rejects.
-   */
   const [lastValue, setLastValue] = useState(value);
   if (value !== lastValue) {
     setLastValue(value);
@@ -151,13 +115,11 @@ export function DatePicker({
     });
   };
 
-  /** Every close path goes through here, so `onBlur` fires exactly once. */
   const close = useCallback(() => {
     setOpen(false);
     onBlur?.();
   }, [onBlur]);
 
-  // Position before paint, or the panel flashes at the wrong spot.
   useLayoutEffect(() => {
     if (open && portal) place();
   }, [open, portal]);
@@ -203,7 +165,6 @@ export function DatePicker({
   const yearBelowMin = (y: number) => minDate !== null && new Date(y, 11, 31) < startOfDay(minDate);
   const yearAboveMax = (y: number) => maxDate !== null && new Date(y, 0, 1) > startOfDay(maxDate);
 
-  // Six weeks from the Sunday on or before the 1st: a fixed grid never reflows.
   const grid = useMemo(() => {
     const firstWeekday = new Date(year, month, 1).getDay();
     return Array.from(
@@ -258,7 +219,6 @@ export function DatePicker({
     'flex size-8 flex-none items-center justify-center rounded-md text-ink/55 ' +
     'hover:bg-ink/7 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent';
 
-  /** Selection is a stroke, not a fill — the same rule Button and Segmented follow. */
   const chosen = 'text-accent font-semibold shadow-[inset_0_0_0_1px_var(--color-accent)]';
 
   const panel = (
@@ -289,7 +249,6 @@ export function DatePicker({
 
         <button
           type='button'
-          // In month mode the day grid is not a place the user can go.
           disabled={mode === 'month'}
           aria-expanded={mode === 'month' ? undefined : view === 'months'}
           onClick={() => {
@@ -342,7 +301,6 @@ export function DatePicker({
                   key={toIsoDate(date)}
                   type='button'
                   disabled={outOfRange(date)}
-                  // Otherwise a screen reader hears "14, button" with no month.
                   aria-label={formatDate(toIsoDate(date), { year: true })}
                   aria-current={isToday ? 'date' : undefined}
                   aria-pressed={isSelected}

@@ -2,10 +2,6 @@ import { type HTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn';
 
-/**
- * Accent marks what needs attention (income, overdue, active), neutral marks
- * categories, outline marks metadata (pending, transfer, project, uncategorised).
- */
 const VARIANT = {
   accent: 'bg-accent-100 text-accent-800',
   accent2: 'bg-accent-2-100 text-accent-2-800',

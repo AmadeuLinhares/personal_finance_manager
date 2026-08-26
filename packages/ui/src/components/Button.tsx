@@ -7,7 +7,6 @@ const BASE =
   'text-ui rounded-md border border-transparent transition-colors ' +
   'disabled:opacity-45 disabled:cursor-not-allowed';
 
-/** Primary is an accent outline, never a fill — the system draws with strokes. */
 const VARIANT = {
   primary:
     'text-accent border-accent hover:bg-accent/12 active:bg-accent/22 ' +
@@ -25,9 +24,7 @@ const PADDING = {
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof VARIANT;
   size?: keyof typeof PADDING;
-  /** Square 36x36, for a lone icon. Requires an aria-label. */
   icon?: boolean;
-  /** Full width, for the end of a form. */
   block?: boolean;
   children?: ReactNode;
 }

@@ -2,7 +2,6 @@ import { type HTMLAttributes } from 'react';
 
 import { cn } from '../lib/cn';
 
-/** The small caps label that opens a section. */
 export function Kicker({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h6

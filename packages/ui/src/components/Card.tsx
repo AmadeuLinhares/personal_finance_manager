@@ -13,7 +13,6 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   elevation?: keyof typeof ELEVATION;
 }
 
-/** Bordered and unfilled. Cards are never filled with accent. */
 export function Card({ elevation = 'none', className, ...rest }: CardProps) {
   return (
     <div

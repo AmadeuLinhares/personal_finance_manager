@@ -1,15 +1,14 @@
-import type { Account, Category, CategoryTotals, ListMeta, Transaction } from '@/http/api-types';
+import {
+  type Account,
+  type Balance,
+  type Category,
+  type CategoryTotals,
+  type ListMeta,
+  type Transaction,
+} from '@pfm/contracts';
 
-/**
- * Builders, not literals: a fixture that spells out all fourteen fields of an
- * Account buries the one field the test is about. Each takes the fields that
- * matter and fills the contract's rest.
- *
- * They are typed as the real response shapes on purpose — if the API's types
- * change under us, these stop compiling instead of quietly testing a shape the
- * server no longer sends.
- */
 const STAMP = '2026-08-01T00:00:00.000Z';
+const DAY = STAMP.slice(0, 10);
 
 export const account = (over: Partial<Account> & Pick<Account, 'id' | 'name'>): Account => ({
   type: 'checking',
@@ -25,6 +24,21 @@ export const account = (over: Partial<Account> & Pick<Account, 'id' | 'name'>): 
   ...over,
 });
 
+export const balance = (
+  over: Partial<Balance> & Pick<Balance, 'accountId' | 'available'>,
+): Balance => ({
+  currency: 'CAD',
+  asOf: DAY,
+  openingBalance: 0,
+  posted: over.available,
+  pending: 0,
+  transactionCount: 0,
+  pendingCount: 0,
+  creditLimit: null,
+  availableCredit: null,
+  ...over,
+});
+
 export const category = (over: Partial<Category> & Pick<Category, 'id' | 'name'>): Category => ({
   kind: 'expense',
   parentId: null,
@@ -36,7 +50,6 @@ export const category = (over: Partial<Category> & Pick<Category, 'id' | 'name'>
   ...over,
 });
 
-/** A report row. `net` follows `inflow - outflow` unless a test overrides it. */
 export const categoryTotals = (
   over: Partial<CategoryTotals> & Pick<CategoryTotals, 'name' | 'outflow'>,
 ): CategoryTotals => ({
@@ -70,7 +83,6 @@ export const transaction = (
   ...over,
 });
 
-/** One full page: the paging maths is not what these tests are about. */
 export const listMeta = (total: number): ListMeta => ({
   total,
   count: total,

@@ -5,12 +5,6 @@ import { Button } from './Button';
 import { VisuallyHidden } from './VisuallyHidden';
 import { cn } from '../lib/cn';
 
-/**
- * Rows of shimmering rules, sized to the content they stand in for.
- *
- * The bars are `aria-hidden` — they carry no information. Pass `label` so the
- * wait is announced instead of being silence between a heading and a table.
- */
 export function Skeleton({
   lines = 3,
   label,
@@ -89,11 +83,6 @@ export function ErrorState({
   );
 }
 
-/**
- * The line that owns up to something: a 207 partial import, or the rows a report
- * dropped. `attention` gets an accent border and an icon, `muted` is a quiet
- * footnote.
- */
 export function Notice({
   variant = 'attention',
   children,
@@ -133,7 +122,6 @@ export function Pagination({
   page: number;
   pageCount: number;
   onPageChange: (page: number) => void;
-  /** e.g. "Showing 1–8 of 21". Offset pagination, as the API serves it. */
   summary?: ReactNode;
   className?: string;
 }) {

@@ -14,23 +14,15 @@ import { cn } from '../lib/cn';
 import { type Currency, formatMoney } from '../lib/format';
 
 export interface TrendPoint {
-  /** Short axis label, e.g. `Sep` or `2026-09`. */
   label: string;
-  /** Integer minor units. */
   value: number;
 }
 
 export interface TrendChartProps {
   series: TrendPoint[];
-  /**
-   * Index of the last point that is an actual. Everything after it is drawn
-   * dashed, because a forecast must not read as something that happened. Omit for
-   * an all-forecast line.
-   */
   actualUpTo?: number;
   height?: number;
   currency?: Currency;
-  /** Names the single series — a one-series chart needs no legend box. */
   label: string;
   className?: string;
 }
@@ -38,32 +30,20 @@ export interface TrendChartProps {
 interface ChartRow {
   label: string;
   value: number;
-  /**
-   * The same figure split across two keys. `null` breaks a line, so the solid
-   * and dashed segments never draw over each other; they meet at the seam, which
-   * both keys carry so there is no gap between them.
-   */
   actual: number | null;
   forecast: number | null;
   isForecast: boolean;
 }
 
-/** Clamp an author-supplied seam to a real index. */
 const seamOf = (series: TrendPoint[], actualUpTo: number | undefined): number =>
   actualUpTo === undefined ? 0 : Math.min(Math.max(actualUpTo, 0), series.length - 1);
 
-/**
- * Exported for the test: the split is the whole point of this chart, and it is
- * plain data, so it can be asserted without a layout engine.
- */
 export function toChartRows(series: TrendPoint[], actualUpTo?: number): ChartRow[] {
   const seam = seamOf(series, actualUpTo);
 
   return series.map((point, index) => ({
     label: point.label,
     value: point.value,
-    // A one-point solid segment would be an invisible line with a stray dot, so
-    // a seam of 0 means everything is forecast.
     actual: seam > 0 && index <= seam ? point.value : null,
     forecast: index >= seam ? point.value : null,
     isForecast: index > seam,
@@ -86,18 +66,6 @@ const ChartTooltip = ({
   );
 };
 
-/**
- * The balance projection line. One series, so no legend: the heading names it.
- *
- * The line is accent-600 rather than the ramp's base 500 — 500 sits at 2.6:1
- * against this ground, under the 3:1 a thin mark needs. The endpoint carries a
- * visible value, and the whole series is repeated as a table for screen readers,
- * so identity and magnitude never depend on the line alone. That table is the
- * accessible representation, which is why the plot itself is `aria-hidden`.
- *
- * Colors come from CSS variables rather than the tokens module, so the chart
- * re-themes without a re-render.
- */
 export function TrendChart({
   series,
   actualUpTo,
@@ -124,8 +92,6 @@ export function TrendChart({
               axisLine={false}
               tick={{ fill: 'var(--color-ink)', fillOpacity: 0.55, fontSize: 10 }}
             />
-            {/* Hidden, but it still sets the scale: the original chart mapped the
-                series' own min and max to the plot's edges, and so does this. */}
             <YAxis hide domain={['dataMin', 'dataMax']} />
             <Tooltip
               content={(props: TooltipContentProps) => (
@@ -159,7 +125,6 @@ export function TrendChart({
               connectNulls={false}
               isAnimationActive={false}
             />
-            {/* The seam between what happened and what is only committed. */}
             <ReferenceDot
               x={rows[seam].label}
               y={rows[seam].value}
@@ -171,8 +136,6 @@ export function TrendChart({
         </ResponsiveContainer>
       </div>
 
-      {/* A visible value on the endpoint: the line alone is under 3:1, so the
-          figure has to be readable without it. */}
       <div className='mt-1 flex justify-end'>
         <span className='text-ui-sm text-ink/70 tabular-nums'>
           {last.label} · {formatMoney(last.value, currency)}

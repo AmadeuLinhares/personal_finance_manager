@@ -17,7 +17,6 @@ import {
   valueTransformMasks,
 } from '../lib/masks';
 
-/** The bordered box. On Input it wraps the control so adornments can sit inside it. */
 const BOX =
   'flex min-h-9 w-full items-center gap-2 rounded-md border border-divider bg-transparent px-2 ' +
   'hover:border-ink/45 has-[[aria-invalid]]:border-accent-700 ' +
@@ -25,36 +24,20 @@ const BOX =
   'has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ' +
   'has-[:disabled]:opacity-45';
 
-/** A control that is its own box — select and textarea take no adornments. */
 const PLAIN =
   'w-full min-h-9 px-2 py-1.5 text-ui text-ink caret-accent bg-transparent ' +
   'border border-divider rounded-md hover:border-ink/45 focus-visible:border-accent ' +
   'aria-invalid:border-accent-700 disabled:opacity-45';
 
-/** The control inside a BOX: no border, no ring — the box shows both. */
 const INNER =
   'h-full w-full min-w-0 bg-transparent py-1.5 text-ui text-ink caret-accent outline-none ' +
   'placeholder:text-ink/40 disabled:cursor-not-allowed';
 
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'prefix'> {
-  /**
-   * A named mask, or a raw @react-input/mask config for a one-off.
-   *
-   * `'money'` is a value-transform mask: the field shows `45.99` and the form
-   * receives `4599` — integer minor units, the number the API stores.
-   */
   mask?: MaskName | CharacterMask;
-  /** Leading adornment inside the box, e.g. `$`. */
   prefix?: ReactNode;
-  /** Trailing adornment inside the box, e.g. `CAD` or an icon. */
   suffix?: ReactNode;
-  /** Classes for the bordered box. `className` goes to the input itself. */
   containerClassName?: string;
-  /**
-   * Fires with the parsed value of a value-transform mask — integer minor units
-   * for `money`. This is the framework-agnostic hook: pair it with
-   * react-hook-form's `Controller`, or plain `useState`.
-   */
   onValueChange?: (value: number) => void;
 }
 
@@ -76,7 +59,6 @@ export function Input({
         : mask
       : undefined;
 
-  // Called unconditionally: hooks cannot be skipped, and an empty mask is inert.
   const maskRef = useMask(characterMask ?? { mask: '', replacement: {} });
 
   const isControlled = rest.value !== undefined;
@@ -84,13 +66,6 @@ export function Input({
     transform ? transform.coerce(rest.defaultValue ?? rest.value) : '',
   );
 
-  /*
-   * The native event is passed through untouched. Reformatting the display does
-   * not change what the digits parse to, so whether react-hook-form reads the
-   * event or re-reads the DOM node on blur, `setValueAs` sees the same digits and
-   * lands the same integer. That is why there is no synthetic event here, and no
-   * assumption about how RHF decides where to read from.
-   */
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (transform) {
       const parsed = transform.parse(event.target.value);
@@ -148,7 +123,6 @@ export function Textarea({ className, ...rest }: ComponentPropsWithRef<'textarea
   return <textarea className={cn(PLAIN, 'min-h-[90px] resize-y', className)} {...rest} />;
 }
 
-/** What Field hands its child, ready to spread onto a control. */
 export interface FieldControlProps {
   id: string;
   'aria-invalid'?: true;
@@ -157,31 +131,12 @@ export interface FieldControlProps {
 
 export interface FieldProps {
   label: string;
-  /** Quiet guidance under the control. Hidden while an error is showing. */
   hint?: ReactNode;
-  /**
-   * The API's own vocabulary reads best here — VALIDATION_ERROR,
-   * CURRENCY_MISMATCH, UNSUPPORTED_OPERATION. Pass `errors.x?.message` straight
-   * through. Setting it marks the control aria-invalid.
-   */
   error?: ReactNode;
   className?: string;
   children: (props: FieldControlProps) => ReactNode;
 }
 
-/**
- * Label, control and message.
- *
- * Takes a render function so the control keeps its own props while the field owns
- * the id and aria wiring. Nothing it passes down collides with what
- * react-hook-form's `register()` returns, so the two spread in either order:
- *
- * ```tsx
- * <Field label="Amount ($)" error={errors.amount?.message}>
- *   {(field) => <Input mask="money" prefix="$" {...field} {...register('amount')} />}
- * </Field>
- * ```
- */
 export function Field({ label, hint, error, className, children }: FieldProps) {
   const id = useId();
   const messageId = `${id}-message`;

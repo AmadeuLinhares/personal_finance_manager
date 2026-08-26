@@ -11,11 +11,14 @@
  *   amount  > 0  money entered the account (income, refund, transfer in)
  *   balance < 0  the account is overdrawn, or (for a credit card) you owe money
  */
-export const CURRENCIES = {
-  CAD: { code: 'CAD', minorUnits: 2, symbol: '$' },
-  USD: { code: 'USD', minorUnits: 2, symbol: '$' },
-  EUR: { code: 'EUR', minorUnits: 2, symbol: '€' },
-};
+
+import { CURRENCY_CODES } from '@pfm/contracts';
+
+const SYMBOLS = { CAD: '$', USD: '$', EUR: '€' };
+
+export const CURRENCIES = Object.fromEntries(
+  CURRENCY_CODES.map((code) => [code, { code, minorUnits: 2, symbol: SYMBOLS[code] ?? '$' }]),
+);
 
 export const BASE_CURRENCY = 'CAD';
 

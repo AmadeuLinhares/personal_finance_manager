@@ -3,15 +3,6 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'vitest';
 
-/*
- * Tailwind v4 generates spacing utilities for integer multipliers and `.5`, and
- * for nothing else. `px-2.6` and `gap-2.2` are not errors and not warnings —
- * they compile to no CSS at all, and the component silently loses its padding.
- *
- * This system's step is 4.6px, which invites exactly that mistake: 2.2 and 2.6
- * look like legitimate members of a 4.6px scale. They are not. The rule is the
- * one theme.css already states — whole steps, halves at most.
- */
 const SPACING_UTILITY =
   /\b(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y|space-x|space-y|size|w|h)-\d+\.\d+\b/g;
 

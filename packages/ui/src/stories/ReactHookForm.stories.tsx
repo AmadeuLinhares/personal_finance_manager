@@ -17,7 +17,6 @@ export default meta;
 
 interface TransactionForm {
   description: string;
-  /** Integer minor units. 4599, never 45.99. */
   amount: number;
   accountId: string;
   date: string;
