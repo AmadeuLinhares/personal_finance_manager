@@ -329,12 +329,12 @@ could not reach the API at all. It is shared between `server` and `preview` now.
 
 Where it stands, measured on the runner over three runs of the same commit:
 
-|                | score                                           |
-| -------------- | ----------------------------------------------- |
-| Accessibility  | **100**                                         |
-| Best practices | **100**                                         |
-| SEO            | **91**                                          |
-| Performance    | **83** (median; the three runs gave 57, 83, 83) |
+|                | score                                |
+| -------------- | ------------------------------------ |
+| Accessibility  | **100**                              |
+| Best practices | **100**                              |
+| SEO            | **100**                              |
+| Performance    | **83** (median; the runs give 71–83) |
 
 Accessibility started at 89. The report named three audits and all three were
 real: `aria-hidden-focus` — recharts made the chart surface focusable inside the
@@ -343,14 +343,12 @@ three colours, `ink/55` at 3.63:1, `ink/50` at 3.15:1 and `accent` at 3.02:1,
 against the 4.5:1 normal text needs; and `heading-order` — `Kicker` was an `h6`
 directly under an `h2`. Fixing them is what the audit was for.
 
-SEO is 91 for one reason: there was no `robots.txt`, so the SPA answered
-`index.html` for it and Lighthouse tried to parse HTML as a robots file. This
-commit adds one. That should read 100 on the next run, but the threshold stays at
-0.9 until it does — a gate set above the last measured number is a gate set on a
-hope.
+SEO was 91 until a `robots.txt` existed. Without one the SPA answered `index.html`
+for it, and Lighthouse parsed HTML as a robots file — one "Syntax not understood"
+per line. Two lines in `public/` closed it.
 
-The thresholds in `lighthouserc.json` fail the build below 0.95 on accessibility
-and best practices, 0.9 on SEO, and **0.7** on performance, all against the median
+The thresholds in `lighthouserc.json` fail the build below 0.95 on accessibility,
+best practices and SEO, and below **0.7** on performance, all against the median
 of the three runs. That performance floor is deliberately loose, and the reason is
 the table above: the same commit scored 57 and 83 on the same runner. A gate set
 near the median would fail on noise, and a gate that cries wolf gets switched off.
