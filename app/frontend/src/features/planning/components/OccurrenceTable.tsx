@@ -28,41 +28,43 @@ export function OccurrenceTable({
       style={{ overflow: 'auto', overscrollBehavior: 'contain', maxHeight: VIEWPORT }}
       aria-busy={isFetching}
     >
-      <Table caption='Upcoming bills and income, earliest first'>
-        <thead className='sticky top-0 bg-bg'>
-          <tr>
-            <Th>Due</Th>
-            <Th>Item</Th>
-            <Th>Status</Th>
-            <Th numeric>Amount</Th>
-            <Th numeric>
-              <VisuallyHidden>Actions</VisuallyHidden>
-            </Th>
-          </tr>
-        </thead>
-        <tbody>
-          {occurrences.map((occurrence) => {
-            const key = occurrenceKey(occurrence);
+      <div style={{ display: 'block', height: 'max-content' }}>
+        <Table caption='Upcoming bills and income, earliest first'>
+          <thead className='sticky top-0 bg-bg'>
+            <tr>
+              <Th>Due</Th>
+              <Th>Item</Th>
+              <Th>Status</Th>
+              <Th numeric>Amount</Th>
+              <Th numeric>
+                <VisuallyHidden>Actions</VisuallyHidden>
+              </Th>
+            </tr>
+          </thead>
+          <tbody>
+            {occurrences.map((occurrence) => {
+              const key = occurrenceKey(occurrence);
 
-            return (
-              <OccurrenceRow
-                key={key}
-                occurrence={occurrence}
-                busy={pendingKey === key}
-                onPost={() => {
-                  onPost(occurrence);
-                }}
-                onSkip={() => {
-                  onSkip(occurrence);
-                }}
-                onUnskip={() => {
-                  onUnskip(occurrence);
-                }}
-              />
-            );
-          })}
-        </tbody>
-      </Table>
+              return (
+                <OccurrenceRow
+                  key={key}
+                  occurrence={occurrence}
+                  busy={pendingKey === key}
+                  onPost={() => {
+                    onPost(occurrence);
+                  }}
+                  onSkip={() => {
+                    onSkip(occurrence);
+                  }}
+                  onUnskip={() => {
+                    onUnskip(occurrence);
+                  }}
+                />
+              );
+            })}
+          </tbody>
+        </Table>
+      </div>
     </div>
   );
 }
