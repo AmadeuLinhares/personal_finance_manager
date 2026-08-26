@@ -279,11 +279,45 @@ on it. That needed one fix: the `/api` proxy lived only under Vite's `server`
 config, so `vite preview` was not proxying and a production build served locally
 could not reach the API at all. It is shared between `server` and `preview` now.
 
-The thresholds are in `lighthouserc.json` — accessibility, best practices and SEO
-fail the build below 0.95, 0.9 and 0.9. **Performance is a warning rather than an
-error until it has been measured on the runner**: the bundle is 762 kB raw for one
-recharts line chart, and publishing the number the pipeline actually produces is
-worth more than guessing at a floor. Two limits worth naming out loud:
+Where it stands, measured on the runner over three runs of the same commit:
+
+|                | score                                           |
+| -------------- | ----------------------------------------------- |
+| Accessibility  | **100**                                         |
+| Best practices | **100**                                         |
+| SEO            | **91**                                          |
+| Performance    | **83** (median; the three runs gave 57, 83, 83) |
+
+Accessibility started at 89. The report named three audits and all three were
+real: `aria-hidden-focus` — recharts made the chart surface focusable inside the
+`aria-hidden` plot, which is a keyboard trap; `color-contrast` — 34 elements from
+three colours, `ink/55` at 3.63:1, `ink/50` at 3.15:1 and `accent` at 3.02:1,
+against the 4.5:1 normal text needs; and `heading-order` — `Kicker` was an `h6`
+directly under an `h2`. Fixing them is what the audit was for.
+
+SEO is 91 for one reason: there was no `robots.txt`, so the SPA answered
+`index.html` for it and Lighthouse tried to parse HTML as a robots file. This
+commit adds one. That should read 100 on the next run, but the threshold stays at
+0.9 until it does — a gate set above the last measured number is a gate set on a
+hope.
+
+The thresholds in `lighthouserc.json` fail the build below 0.95 on accessibility
+and best practices, 0.9 on SEO, and **0.7** on performance, all against the median
+of the three runs. That performance floor is deliberately loose, and the reason is
+the table above: the same commit scored 57 and 83 on the same runner. A gate set
+near the median would fail on noise, and a gate that cries wolf gets switched off.
+0.7 catches a real regression — a doubled bundle, a blocking request — without
+firing at variance.
+
+**Performance is 83 and the reason is not the bundle.** FCP 0.6 s, LCP 1.2 s,
+Speed Index 1.3 s are all fine. What costs the points is CLS 0.32 and 580 ms of
+total blocking time. The CLS is not attributed to elements in the report, and the
+two candidates — the two Google-hosted serif faces swapping in over a fallback,
+and the loading skeletons being shorter than the content they stand in for — need
+measurement to separate. That is the next pass, and it is a real one: on weight,
+CLS and TBT are 55 of the performance score.
+
+Two limits worth naming out loud:
 
 - **Only the Overview is audited.** Screens are local state, not routes, so there
   is no URL for Transactions, Reports or Planning to point Lighthouse at. That is
