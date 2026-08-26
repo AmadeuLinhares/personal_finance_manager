@@ -40,7 +40,7 @@ which the API imports too.
 
 ```bash
 pnpm dev          # this package alone, on :5173, proxying /api to :4000
-pnpm test         # vitest + testing-library over happy-dom
+pnpm test         # vitest + testing-library over happy-dom, with the 80% coverage gate
 pnpm type-check   # tsc -b --noEmit
 pnpm lint         # eslint, type-aware
 pnpm knip         # unused files, exports and dependencies

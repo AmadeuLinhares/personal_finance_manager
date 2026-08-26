@@ -24,12 +24,12 @@ pnpm dev
 The client's dev server proxies `/api` to the backend, so nothing is same-origin
 by accident and no CORS is involved. One `Ctrl-C` stops both.
 
-|                                               |                                                        |
-| --------------------------------------------- | ------------------------------------------------------ |
-| `pnpm test`                                   | 119 tests — 52 API, 32 design system, 35 screens       |
-| `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                 |
-| `pnpm storybook`                              | the design system in isolation                         |
-| `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions) |
+|                                               |                                                                     |
+| --------------------------------------------- | ------------------------------------------------------------------- |
+| `pnpm test`                                   | 199 tests with coverage gates — 52 API, 86 design system, 61 client |
+| `pnpm lint` · `pnpm type-check` · `pnpm knip` | lint, types, dead code                                              |
+| `pnpm storybook`                              | the design system in isolation                                      |
+| `pnpm reset`                                  | reseed the API (`scale: 10` gives ~6,600 transactions)              |
 
 **To see the loading and error states**, make the API misbehave — per request
 with `?__latency=2000` or `?__error=500`, or globally:
@@ -265,7 +265,21 @@ story, which is where contrast and landmark problems surface. Known gaps: no
 arrow-key navigation inside the calendar grid, and no axe run over the assembled
 screens — what the screen tests assert is roles and accessible names, not colour.
 
-**Testing — what, and why that.** 35 screen tests, and the seam is `fetch`, not
+**Coverage is a gate, not a report.** `pnpm test` runs with `--coverage` and
+`vitest.config.ts` sets a floor of 80% on statements, branches, functions and
+lines in both `@pfm/ui` and the client; under it, the suite fails. Where it
+stands:
+
+|                | statements | branches | functions | lines |
+| -------------- | ---------- | -------- | --------- | ----- |
+| `@pfm/ui`      | 87.4%      | 82.6%    | 88.3%     | 90.0% |
+| `app/frontend` | 91.5%      | 85.1%    | 89.3%     | 91.8% |
+
+Storybook stories, `main.tsx`, the barrels and the ambient `.d.ts` are excluded —
+none of them is code that can be wrong. Everything else counts, including files no
+test imports, so the number cannot be flattered by leaving a file out.
+
+**Testing — what, and why that.** 61 client tests, and the seam is `fetch`, not
 the query hooks. A test that mocks `useGetTransactions` proves the component can
 render its own mock; it would pass with the filters wired to nothing. Stubbing
 the transport keeps the query keys, the param building and the error mapping
