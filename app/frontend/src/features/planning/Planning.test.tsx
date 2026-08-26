@@ -222,8 +222,6 @@ test('the range is free, not a preset — an arbitrary date goes to both request
   expect(stub.lastTo('/projections/budget')?.params.get('from')).toBe(twentieth);
 });
 
-const occurrenceTable = () => screen.getByRole('table', { name: /Upcoming bills/ });
-
 const manyOccurrences = (count: number) =>
   Array.from({ length: count }, (_, index) =>
     occurrence({
@@ -234,28 +232,13 @@ const manyOccurrences = (count: number) =>
     }),
   );
 
-test('a window under the threshold puts every row in the DOM', async () => {
-  renderPlanning({
-    '/scheduled-items/occurrences': () => ({ body: upcoming(manyOccurrences(40)) }),
-  });
-
-  await screen.findByText('Item 0');
-  expect(screen.getByText('Item 39')).toBeTruthy();
-  expect(occurrenceTable().getAttribute('aria-rowcount')).toBeNull();
-});
-
-test('a long window stops putting every row in the DOM, and declares the real total', async () => {
+test('a long window renders every row it was given, none of them dropped', async () => {
   renderPlanning({
     '/scheduled-items/occurrences': () => ({ body: upcoming(manyOccurrences(400)) }),
   });
 
-  const table = await waitFor(() => {
-    const found = occurrenceTable();
-    expect(found.getAttribute('aria-rowcount')).toBe('401');
-    return found;
-  });
-
-  expect(table.querySelectorAll('tbody tr[data-index]').length).toBeLessThan(60);
+  await screen.findByText('Item 0');
+  expect(screen.getByText('Item 399')).toBeTruthy();
 });
 
 test('the window opens at the first of the month, not at today', async () => {

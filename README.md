@@ -236,8 +236,8 @@ if you get it wrong.
 out-of-scope transactions are counted and named on screen. A total that silently
 excludes money is a wrong total presented confidently.
 
-**Large lists: paged where the API pages, virtualised where it does not.** Two
-lists, two answers, and the API decided which.
+**Large lists: paged where the API pages, capped where it does not.** Two lists,
+two answers, and the API decided which.
 
 The ledger pages. `GET /transactions` takes `page` and `pageSize` and returns
 `meta.totalPages`, so the client asks for 8 rows at a time and never holds more.
@@ -247,8 +247,8 @@ gives ~6,600 — and it is why there is nothing to virtualise there.
 `GET /scheduled-items/occurrences` does not page. No `page` in the filters, no
 `meta` in the response: it expands every rule across the window and returns the
 lot. That was invisible while the window was a two-option preset, and it stopped
-being invisible the moment the window became a free date range. So I measured what
-the endpoint actually returns:
+being invisible when the window became a free date range, so I measured what the
+endpoint actually returns:
 
 | window   | occurrences |
 | -------- | ----------- |
@@ -257,18 +257,26 @@ the endpoint actually returns:
 | 5 years  | 729         |
 | 10 years | 1,445       |
 
-At roughly 145 rows a year, a reachable window is 1,445 rows of five cells each —
-about 14,000 nodes. The occurrence table is virtualised with
-`@tanstack/react-virtual`, and only **above 50 rows**: below that the machinery
-costs more than it saves, and the default window is twelve. The table carries
-`aria-rowcount` and each row its `aria-rowindex`, because a virtual list that does
-not declare the total it is a window onto is a list a screen reader cannot count.
+Roughly 145 rows a year. Today every one of them is rendered, inside a 500px
+scroll region with `overscroll-behavior: contain` so reaching the end of the list
+does not hand the wheel to the page. A test asserts that all 400 rows of a long
+window arrive, because the failure mode of a capped list is silently dropping the
+tail.
 
-What that cost: 24 kB raw, 8 kB gzipped. What it is worth knowing: the threshold
-and the row estimate are guesses that a browser would sharpen, and happy-dom
-renders nothing at zero height, so what the tests prove is the mechanism — every
-row present under the threshold, the DOM holding a fraction of them above it, and
-the real total declared — not the scroll behaviour.
+**I built the virtualised version and took it out again**, which is worth saying
+rather than hiding. `@tanstack/react-virtual` inside the existing `<table>` leaked
+its virtual height into the page: the outer scrollbar grew in proportion to the
+inner one. Spacer `<tr>`s with no cells collapse, spacer `<td>`s join row-height
+distribution, and `border-collapse` redistributes borders across the whole table —
+every trick for occupying the space of unrendered rows has to survive the table's
+own layout algorithm, and with no browser on this machine I was working around
+those rules blind. Rewriting the list as a `div` grid with table roles did fix it,
+but it left Planning rendering a table one way and Transactions another, for a
+problem that starts at 1,445 rows in a window nobody has asked for yet.
+
+So the measurement stands, the numbers are above, and the honest state is a scroll
+region plus a test that the tail is not dropped. Virtualisation goes back in when
+the window is wide enough to need it, and it goes in as a list rather than a table.
 
 ---
 
@@ -290,9 +298,7 @@ Three decisions worth naming, one of which cost something:
 - **The chart is recharts, and it is the most expensive line in the repo.**
   `TrendChart` was hand-rolled SVG first. Moving it to recharts took the bundle
   from 407 kB raw / 127 kB gzip to **762 kB / 232 kB** — the library is roughly
-  half of what ships, for one line chart. (The client is 786 kB / 240 kB today;
-  the other 24 kB is the virtualiser, which earned its place — see Handling
-  real-world data.) What it bought: a tooltip, an axis and
+  half of what ships, for one line chart. What it bought: a tooltip, an axis and
   responsive resizing I would otherwise maintain, and a component whose props did
   not change, so the seam between actuals and forecast is still drawn by our code
   and still tested. Worth knowing before the next chart: the second one is free,

@@ -1,6 +1,5 @@
 import { type Occurrence, type OccurrenceStatus } from '@pfm/contracts';
-import { Button, DateText, Money, Tag, VisuallyHidden, cn } from '@pfm/ui';
-import { type Ref } from 'react';
+import { Button, DateText, Money, Tag, Td, Tr, VisuallyHidden } from '@pfm/ui';
 
 const STATUS_VARIANT: Record<OccurrenceStatus, 'accent' | 'neutral' | 'outline'> = {
   overdue: 'accent',
@@ -9,57 +8,38 @@ const STATUS_VARIANT: Record<OccurrenceStatus, 'accent' | 'neutral' | 'outline'>
   skipped: 'outline',
 };
 
-export const CELLS =
-  'grid min-w-[560px] grid-cols-[76px_1fr_104px_112px_128px] items-center gap-2 px-2';
-
 export interface OccurrenceRowProps {
   occurrence: Occurrence;
   busy: boolean;
   onPost: () => void;
   onSkip: () => void;
   onUnskip: () => void;
-  ref?: Ref<HTMLDivElement>;
-  index?: number;
 }
 
-export function OccurrenceRow({
-  occurrence,
-  busy,
-  onPost,
-  onSkip,
-  onUnskip,
-  ref,
-  index,
-}: OccurrenceRowProps) {
+export function OccurrenceRow({ occurrence, busy, onPost, onSkip, onUnskip }: OccurrenceRowProps) {
   const open = occurrence.status === 'overdue' || occurrence.status === 'scheduled';
   const named = ` ${occurrence.name}, due ${occurrence.date}`;
 
   return (
-    <div
-      ref={ref}
-      role='row'
-      data-index={index}
-      aria-rowindex={index === undefined ? undefined : index + 2}
-      className={cn(CELLS, 'border-b border-divider py-2 text-ui hover:bg-ink/4')}
-    >
-      <span role='cell'>
+    <Tr>
+      <Td numeric className='text-left'>
         <DateText value={occurrence.date} />
-      </span>
-      <span role='cell' className='min-w-0'>
+      </Td>
+      <Td>
         {occurrence.name}
         {occurrence.projectId === null ? null : (
           <Tag variant='outline' className='ml-1.5'>
             project
           </Tag>
         )}
-      </span>
-      <span role='cell'>
+      </Td>
+      <Td>
         <Tag variant={STATUS_VARIANT[occurrence.status]}>{occurrence.status}</Tag>
-      </span>
-      <span role='cell' className={cn('text-right tabular-nums', open ? undefined : 'text-ink/70')}>
+      </Td>
+      <Td numeric className={open ? undefined : 'text-ink/70'}>
         <Money minorUnits={occurrence.amount} signed />
-      </span>
-      <span role='cell' className='text-right whitespace-nowrap'>
+      </Td>
+      <Td numeric>
         {open ? (
           <>
             <Button variant='ghost' size='sm' disabled={busy} onClick={onPost}>
@@ -77,7 +57,7 @@ export function OccurrenceRow({
             <VisuallyHidden>{named}</VisuallyHidden>
           </Button>
         ) : null}
-      </span>
-    </div>
+      </Td>
+    </Tr>
   );
 }
