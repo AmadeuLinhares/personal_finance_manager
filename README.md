@@ -21,8 +21,17 @@ pnpm dev
 - **Client** — <http://localhost:5173>
 - **API** — <http://localhost:4000/api> (that URL lists every endpoint)
 
-The client's dev server proxies `/api` to the backend, so nothing is same-origin
-by accident and no CORS is involved. One `Ctrl-C` stops both.
+`pnpm dev` starts both apps. The client's dev server proxies `/api` to the
+backend, so nothing is same-origin by accident and no CORS is involved, and one
+`Ctrl-C` stops both. To run them apart — or to check a production build against
+the real API — the proxy is shared between `server` and `preview`:
+
+```bash
+pnpm dev:api      # the API alone, on :4000
+pnpm dev:web      # the client alone, on :5173
+pnpm build        # type-check, then a production build
+pnpm --filter @pfm/frontend preview   # serve that build on :4173, still proxying /api
+```
 
 |                                               |                                                                     |
 | --------------------------------------------- | ------------------------------------------------------------------- |
@@ -90,6 +99,24 @@ with the API's validation errors landing under the field that caused them.
 ---
 
 ## Architecture
+
+### The shape of the repo
+
+A pnpm workspace. Two apps, four packages:
+
+|                      |                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `app/frontend`       | the client — Vite, React 19, TanStack Query, react-hook-form                      |
+| `app/backend`        | the starter's in-memory Express API. Not mine, and not evaluated                  |
+| `packages/ui`        | `@pfm/ui` — 36 primitives on Tailwind v4, with Storybook                          |
+| `packages/tokens`    | `@pfm/tokens` — colour, spacing, type and radii as CSS variables and typed values |
+| `packages/contracts` | `@pfm/contracts` — the API's data contract, imported by the client _and_ the API  |
+| `packages/eslint`    | the shared eslint and prettier config                                             |
+
+The client is organised by feature, and the rule that decides where a file goes is
+ownership: one screen asks for it, it lives in that screen's folder; more than one
+does, it moves up. [`app/frontend/README.md`](app/frontend/README.md) is the map of
+that folder. The three sections below are why it is shaped that way.
 
 ### Server state is not client state, and the split is enforced by where code lives
 
@@ -230,8 +257,17 @@ over-budget looks like, `TrendChart` knows a forecast must not read as history.
 Adopting MUI would still have left all four to write, on top of learning
 somebody else's theming.
 
-Two decisions worth naming:
+Three decisions worth naming, one of which cost something:
 
+- **The chart is recharts, and it is the most expensive line in the repo.**
+  `TrendChart` was hand-rolled SVG first. Moving it to recharts took the bundle
+  from 407 kB raw / 127 kB gzip to **762 kB / 232 kB** — the library is roughly
+  half of what ships, for one line chart. What it bought: a tooltip, an axis and
+  responsive resizing I would otherwise maintain, and a component whose props did
+  not change, so the seam between actuals and forecast is still drawn by our code
+  and still tested. Worth knowing before the next chart: the second one is free,
+  and if there is never a second one this was a bad trade. It is also not what
+  costs the performance score — see Quality.
 - **The package ships source, not a build.** Tailwind generates utilities by
   scanning text for literal class strings; point it at a `dist` and every class
   used only inside a component silently vanishes from the app's CSS. A missing
@@ -257,14 +293,26 @@ code and a retry, empty, and _partial_ failure — when Reports cannot load
 category names, the report still renders and says the roll-up is unavailable
 instead of failing whole.
 
-**Accessibility.** Focus trap and restore in `Dialog`; `role="status"` lines that
-say what changed, because `aria-busy` on its own announces nothing; a visually
-hidden `<caption>` on every table; per-row action buttons that name their row, so
-thirty buttons are not all called "Post"; a chart whose series is repeated as a
-screen-reader table, so magnitude never depends on the line alone. `@storybook/addon-a11y` runs axe over every
-story, which is where contrast and landmark problems surface. Known gaps: no
-arrow-key navigation inside the calendar grid, and no axe run over the assembled
-screens — what the screen tests assert is roles and accessible names, not colour.
+**Accessibility, and it is measured rather than asserted.** Focus trap and restore
+in `Dialog`; `role="status"` lines that say what changed, because `aria-busy` on
+its own announces nothing; a visually hidden `<caption>` on every table; per-row
+action buttons that name their row, so thirty buttons are not all called "Post"; a
+chart whose series is repeated as a screen-reader table, so magnitude never depends
+on the line alone. `@storybook/addon-a11y` runs axe over every story, and
+Lighthouse runs it over the assembled screen on every push — **100, and the floor
+is 0.95, so it stays there.**
+
+That number started at 89, which is the point of measuring: three real defects
+were hiding behind code I would have defended. A chart marked `aria-hidden` whose
+surface recharts had made focusable — a keyboard trap. Thirty-four elements below
+the contrast floor, from three colours I had picked by eye. And a `Kicker` that
+rendered an `h6` directly under an `h2`. None of those would have been caught by a
+test asserting roles and names, which is exactly what the screen tests assert.
+
+Still not covered, and worth saying: Lighthouse only sees the Overview, because
+without a router the other three screens have no URL to audit. Automated audits
+also do not cover what needs a person — there is still no arrow-key navigation
+inside the calendar grid.
 
 **CI runs what I run.** `.github/workflows/ci.yml` has two jobs. `checks` runs
 lint, `prettier --check`, `tsc`, knip and the test suite with its coverage gate,
@@ -380,15 +428,23 @@ Ask me about any file in here.
 
 1. **A router.** Screens are local state today. Deep links, back-button
    behaviour, and filters in the URL — the last one is what makes a support
-   conversation possible ("send me the link you're looking at").
-2. **Measure the list, then decide.** Reset with `scale: 10`, profile the table,
+   conversation possible ("send me the link you're looking at"). It also widens
+   the Lighthouse audit from one screen to four, which is the second reason to
+   want it.
+2. **Take the performance score apart.** 83, and not because of the bundle — FCP
+   0.6 s, LCP 1.2 s and Speed Index 1.3 s are all fine. It is CLS 0.32 and 580 ms
+   of blocking time, 55 of the score's weight between them. The report does not
+   attribute the shift to elements, and the two candidates — two Google-hosted
+   serif faces swapping in over a fallback, and loading skeletons shorter than the
+   content they stand in for — need measuring apart before either is "fixed".
+3. **Measure the list, then decide.** Reset with `scale: 10`, profile the table,
    and virtualise only if the numbers say so. If the store were ever real, cursor
    pagination would matter more than either.
-3. **User story 5**, now that Planning proved the project link is already carried
+4. **User story 5**, now that Planning proved the project link is already carried
    on occurrences and transactions.
-4. **Optimistic updates for post and skip**, with rollback. They are the two
+5. **Optimistic updates for post and skip**, with rollback. They are the two
    actions where the round trip is visible, and the invalidation map that makes
    them correct already exists.
-5. **Editing and deleting** transactions and scheduled items. Creating is wired;
+6. **Editing and deleting** transactions and scheduled items. Creating is wired;
    the rest is the same shape, plus the `reassignTo` vs `force` conversation on
    category deletion.
