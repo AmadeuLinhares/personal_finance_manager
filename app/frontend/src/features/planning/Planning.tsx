@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { OccurrenceTable } from './components/OccurrenceTable';
 import { ProjectionPanel } from './components/ProjectionPanel';
 import { useOccurrenceActions } from './hooks/useOccurrenceActions';
+import { describeUnsummed, toOccurrenceTotals } from './utils/occurrenceTotals';
 import { useGetBudgetProjection } from '@/http/queries/projections/useGetBudgetProjection';
 import { useGetOccurrences } from '@/http/queries/scheduled-items/useGetOccurrences';
 import { endOfMonthsAhead, startOfThisMonth } from '@/utils/window';
@@ -41,6 +42,9 @@ export function Planning({ onSchedule }: PlanningProps) {
   const occurrences = occurrencesQuery.data?.occurrences ?? [];
   const totals = occurrencesQuery.data?.totals;
   const projection = projectionQuery.data;
+  const currency = projection?.currency ?? 'CAD';
+  const counted = toOccurrenceTotals(occurrences, currency);
+  const unsummed = describeUnsummed(counted.unsummed);
 
   return (
     <>
@@ -103,8 +107,12 @@ export function Planning({ onSchedule }: PlanningProps) {
       {projection?.goesNegative === true && projection.lowestPoint !== null ? (
         <Notice className='mb-3'>
           On commitments alone the balance goes negative — the lowest point is{' '}
-          <Money minorUnits={projection.lowestPoint.balance} colorInflow={false} /> on{' '}
-          <DateText value={projection.lowestPoint.date} year />.
+          <Money
+            minorUnits={projection.lowestPoint.balance}
+            currency={projection.currency}
+            colorInflow={false}
+          />{' '}
+          on <DateText value={projection.lowestPoint.date} year />.
         </Notice>
       ) : null}
 
@@ -140,12 +148,13 @@ export function Planning({ onSchedule }: PlanningProps) {
               />
 
               <p className='mt-2 text-ui-sm text-ink/70 tabular-nums' role='status'>
-                {`${String(totals?.occurrenceCount ?? occurrences.length)} occurrences to `}
+                {`${String(counted.count)} occurrences to `}
                 <DateText value={to} year />
                 {' · bills '}
-                <Money minorUnits={-(totals?.outflow ?? 0)} colorInflow={false} />
+                <Money minorUnits={-counted.outflow} currency={currency} colorInflow={false} />
                 {' · income '}
-                <Money minorUnits={totals?.inflow ?? 0} />
+                <Money minorUnits={counted.inflow} currency={currency} />
+                {unsummed === '' ? '' : ` · ${unsummed}`}
                 {occurrencesQuery.isFetching ? ' · updating…' : ''}
               </p>
             </>

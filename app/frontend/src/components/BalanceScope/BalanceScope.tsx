@@ -36,7 +36,12 @@ export function BalanceScope({ value, onChange }: BalanceScopeProps) {
           'no CAD accounts'
         ) : (
           <>
-            <Money minorUnits={cad.available} colorInflow={false} className='text-ink' />
+            <Money
+              minorUnits={cad.available}
+              currency='CAD'
+              colorInflow={false}
+              className='text-ink'
+            />
             <VisuallyHidden>
               {` available across ${String(cad.accountCount)} CAD accounts, pending included`}
             </VisuallyHidden>

@@ -9,6 +9,7 @@ import { HORIZON, PREVIEW_ROWS } from './constants';
 import { describeTotals } from './utils/balanceLines';
 import { topCategories } from './utils/topCategories';
 import { unsettled } from './utils/unsettled';
+import { REPORT_SCOPE } from '@/constants/reports';
 import { type Destination } from '@/constants/screens';
 import { useGetAccounts } from '@/http/queries/accounts/useGetAccounts';
 import { useGetBudgetProjection } from '@/http/queries/projections/useGetBudgetProjection';
@@ -27,12 +28,18 @@ export function Overview({ asOf, onGo }: OverviewProps) {
   const to = endOfMonthsAhead(HORIZON);
 
   const accountsQuery = useGetAccounts({ asOf, includeBalances: true });
-  const expensesQuery = useGetMonthlyExpenses({ from: month, to: month, currency: 'CAD' });
+  const expensesQuery = useGetMonthlyExpenses({
+    ...REPORT_SCOPE,
+    from: month,
+    to: month,
+    currency: 'CAD',
+  });
   const occurrencesQuery = useGetOccurrences({ from, to });
   const projectionQuery = useGetBudgetProjection({ to, granularity: 'month' });
 
   const accounts = accountsQuery.data?.data ?? [];
   const report = expensesQuery.data?.months[0];
+  const reportCurrency = expensesQuery.data?.currency ?? 'CAD';
   const spending = topCategories(report?.byCategory ?? [], PREVIEW_ROWS);
   const occurrences = occurrencesQuery.data?.occurrences ?? [];
   const upcoming = unsettled(occurrences, PREVIEW_ROWS);
@@ -97,9 +104,9 @@ export function Overview({ asOf, onGo }: OverviewProps) {
             },
           }}
         >
-          <SpendingList rows={spending} />
+          <SpendingList rows={spending} currency={reportCurrency} />
           <p className='mt-3 text-ui-sm text-ink/70' role='status'>
-            {`Top ${String(spending.length)} of ${String(report?.byCategory.length ?? 0)} categories, CAD, transfers excluded`}
+            {`Top ${String(spending.length)} of ${String(report?.byCategory.length ?? 0)} categories, ${reportCurrency}, transfers excluded`}
           </p>
         </Panel>
 

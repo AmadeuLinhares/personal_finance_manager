@@ -61,7 +61,11 @@ export function TransactionRow({ transaction, singleAccount }: TransactionRowPro
             <VisuallyHidden>no running balance: this row has not settled</VisuallyHidden>
           </>
         ) : (
-          <Money minorUnits={transaction.runningBalance} colorInflow={false} />
+          <Money
+            minorUnits={transaction.runningBalance}
+            currency={transaction.currency}
+            colorInflow={false}
+          />
         )}
       </Td>
     </Tr>

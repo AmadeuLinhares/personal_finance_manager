@@ -14,7 +14,7 @@ export function ProjectionPanel({ projection, isFetching }: ProjectionPanelProps
       <TrendChart
         series={toProjectionSeries(projection)}
         actualUpTo={PROJECTION_SEAM}
-        label={`Projected CAD balance to ${projection.range.to}`}
+        label={`Projected ${projection.currency} balance to ${projection.range.to}`}
       />
       <p className='mt-1 text-label text-ink/70'>
         Solid to <DateText value={projection.assumptions.actualsThrough} year /> — actuals. Dashed
@@ -27,11 +27,19 @@ export function ProjectionPanel({ projection, isFetching }: ProjectionPanelProps
             Ending balance · <DateText value={projection.range.to} year />
           </CardKicker>
           <CardTitle className='text-[26px] tabular-nums'>
-            <Money minorUnits={projection.endingBalance} colorInflow={false} />
+            <Money
+              minorUnits={projection.endingBalance}
+              currency={projection.currency}
+              colorInflow={false}
+            />
           </CardTitle>
           <CardMeta className='tabular-nums'>
-            <Money minorUnits={projection.endingBalance - projection.startingBalance} signed /> over
-            the window
+            <Money
+              minorUnits={projection.endingBalance - projection.startingBalance}
+              currency={projection.currency}
+              signed
+            />{' '}
+            over the window
           </CardMeta>
         </Card>
         <Card className='flex-1'>
@@ -40,7 +48,11 @@ export function ProjectionPanel({ projection, isFetching }: ProjectionPanelProps
             {projection.lowestPoint === null ? (
               '—'
             ) : (
-              <Money minorUnits={projection.lowestPoint.balance} colorInflow={false} />
+              <Money
+                minorUnits={projection.lowestPoint.balance}
+                currency={projection.currency}
+                colorInflow={false}
+              />
             )}
           </CardTitle>
           <CardMeta className='tabular-nums'>

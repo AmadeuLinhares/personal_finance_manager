@@ -55,6 +55,15 @@ const OCCURRENCES: Occurrence[] = [
     amount: -6900,
     status: 'skipped',
   }),
+  occurrence({
+    scheduledItemId: 'sch_usd_client',
+    name: 'US client invoice',
+    date: day(11),
+    amount: 150000,
+    currency: 'USD',
+    accountId: 'acc_usd',
+    kind: 'income',
+  }),
 ];
 
 const upcoming = (occurrences = OCCURRENCES): UpcomingResponse => ({
@@ -141,6 +150,19 @@ test('offers actions only on the dates that still have one', async () => {
   expect(within(rowFor('Rent')).queryByRole('button')).toBeNull();
 });
 
+test('a date that has not arrived can only be skipped', async () => {
+  renderPlanning();
+  await screen.findByText('Hydro');
+
+  const future = within(rowFor('Gym membership'));
+  expect(future.getByRole('button', { name: /^Skip/ })).toBeTruthy();
+  expect(future.queryByRole('button', { name: /^Post/ })).toBeNull();
+
+  const arrived = within(rowFor('Hydro'));
+  expect(arrived.getByRole('button', { name: /^Post/ })).toBeTruthy();
+  expect(arrived.getByRole('button', { name: /^Skip/ })).toBeTruthy();
+});
+
 test('each action names its own row, so thirty buttons are not all "Post"', async () => {
   renderPlanning();
   await screen.findByText('Hydro');
@@ -148,6 +170,30 @@ test('each action names its own row, so thirty buttons are not all "Post"', asyn
   const post = within(rowFor('Hydro')).getByRole('button', { name: /^Post/ });
   expect(post.textContent).toContain('Hydro');
   expect(post.textContent).toContain('due');
+});
+
+test('an occurrence in another currency is named, never summed into the total', async () => {
+  renderPlanning();
+  await screen.findByText('Hydro');
+
+  const footer = screen.getByText(/occurrences to/);
+  expect(footer.textContent).toContain('1 in USD, not summed');
+  expect(footer.textContent).not.toContain(formatMoney(150000));
+  expect(footer.textContent).toContain('4 occurrences to');
+
+  expect(
+    within(rowFor('US client invoice')).getByText(formatMoney(150000, 'USD', { signed: true })),
+  ).toBeTruthy();
+});
+
+test('the totals are computed from the rows, not taken from the API total', async () => {
+  renderPlanning();
+  await screen.findByText('Hydro');
+
+  const footer = screen.getByText(/occurrences to/);
+  expect(footer.textContent).toContain(formatMoney(-231980));
+  expect(footer.textContent).not.toContain(formatMoney(-238880));
+  expect(footer.textContent).not.toContain(formatMoney(218400));
 });
 
 test('posting sends the occurrence date to the rule that generated it', async () => {

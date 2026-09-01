@@ -29,6 +29,7 @@ export function OccurrenceRow({
   index,
 }: OccurrenceRowProps) {
   const open = occurrence.status === 'overdue' || occurrence.status === 'scheduled';
+  const canPost = occurrence.status === 'overdue';
   const named = ` ${occurrence.name}, due ${occurrence.date}`;
 
   return (
@@ -48,15 +49,17 @@ export function OccurrenceRow({
         <Tag variant={STATUS_VARIANT[occurrence.status]}>{occurrence.status}</Tag>
       </Td>
       <Td numeric className={open ? undefined : 'text-ink/70'}>
-        <Money minorUnits={occurrence.amount} signed />
+        <Money minorUnits={occurrence.amount} currency={occurrence.currency} signed />
       </Td>
       <Td numeric>
         {open ? (
           <>
-            <Button variant='ghost' size='sm' disabled={busy} onClick={onPost}>
-              Post
-              <VisuallyHidden>{named}</VisuallyHidden>
-            </Button>
+            {canPost ? (
+              <Button variant='ghost' size='sm' disabled={busy} onClick={onPost}>
+                Post
+                <VisuallyHidden>{named}</VisuallyHidden>
+              </Button>
+            ) : null}
             <Button variant='ghost' size='sm' className='text-ink' disabled={busy} onClick={onSkip}>
               Skip
               <VisuallyHidden>{named}</VisuallyHidden>

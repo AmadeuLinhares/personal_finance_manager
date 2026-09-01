@@ -1,11 +1,12 @@
-import { type CategoryTotals } from '@pfm/contracts';
+import { type CategoryTotals, type CurrencyCode } from '@pfm/contracts';
 import { Bar, Money, Tag } from '@pfm/ui';
 
 export interface SpendingListProps {
   rows: CategoryTotals[];
+  currency: CurrencyCode;
 }
 
-export function SpendingList({ rows }: SpendingListProps) {
+export function SpendingList({ rows, currency }: SpendingListProps) {
   const widest = rows[0]?.outflow ?? 0;
 
   return (
@@ -21,7 +22,7 @@ export function SpendingList({ rows }: SpendingListProps) {
                 </Tag>
               ) : null}
             </span>
-            <Money minorUnits={row.outflow} colorInflow={false} />
+            <Money minorUnits={row.outflow} currency={currency} colorInflow={false} />
           </div>
           <Bar spent={row.outflow} budget={row.budget ?? widest} />
         </li>

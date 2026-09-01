@@ -237,6 +237,39 @@ if you get it wrong.
 out-of-scope transactions are counted and named on screen. A total that silently
 excludes money is a wrong total presented confidently.
 
+**Two currencies are never summed — and Planning was the screen breaking that
+rule.** `GET /scheduled-items/occurrences` returns every account's occurrences
+regardless of currency, and its `totals` sum them: on the default seed, the
+`income` figure was CAD 69,090.00 plus USD 6,000.00 rendered as one number. The
+projection beside it is CAD-only, so a USD occurrence is a row you can act on
+whose action can never move the chart. Both halves are fixed in the client:
+`toOccurrenceTotals` computes the totals from the rows in the projection's
+currency and counts the rest, so the footer reads _"4 occurrences to 30 Nov 2026
+· bills −$2,319.80 · income $0.00 · 1 in USD, not summed"_ — the same
+count-and-name treatment the monthly report gives its exclusions. And every
+`Money` now carries the currency of the record it renders: `formatMoney` fixes
+the locale to `en-CA`, so CAD is `$1,500.00` and USD is `US$1,500.00`, but the
+component defaults to CAD and the occurrence row was letting it, which is why a
+USD invoice read as `$1,500.00`. Thirteen of twenty-one call sites had the same
+omission; the ones over a projection or a report were accidentally right, because
+those responses are single-currency by construction.
+
+**Post is offered only on a date that has arrived.** The projection splits its two
+sources at `asOf`: actual transactions up to it, scheduled occurrences after it.
+That model assumes you only record what already happened, and the API does not
+enforce the assumption — `POST /scheduled-items/:id/post` accepts any date the
+rule generates, including a future one. Post a future occurrence and the money
+lands in neither half: it leaves the forecast, because the occurrence is now
+`posted`, and it never enters the actuals, because each bucket requires
+`date <= asOf`. Measured on the seed: posting a `+$2,184.00` salary due in twelve
+days moved the ending balance from `$70,208.78` to `$68,024.78` — down by exactly
+the amount recorded. So the row offers **Post** only when `status === 'overdue'`;
+a future date offers **Skip** alone. That is the right product rule
+independently — "record that this happened" does not apply to a day that has not
+come — and it happens to close the hole. The cost is that paying a bill early
+cannot be recorded from this screen, and the fix on the API side would be to
+count posted transactions where their date falls rather than dropping them.
+
 **Large lists: paged where the API pages, capped where it does not.** Two lists,
 two answers, and the API decided which.
 
@@ -384,12 +417,12 @@ could not reach the API at all. It is shared between `server` and `preview` now.
 
 Where it stands, measured on the runner over three runs of the same commit:
 
-|                | score                                |
-| -------------- | ------------------------------------ |
-| Accessibility  | **100**                              |
-| Best practices | **100**                              |
-| SEO            | **100**                              |
-| Performance    | **83** (median; the runs give 71–83) |
+|                | score                                      |
+| -------------- | ------------------------------------------ |
+| Accessibility  | **100**                                    |
+| Best practices | **100**                                    |
+| SEO            | **100**                                    |
+| Performance    | **83** (median; the three runs give 82–83) |
 
 Accessibility started at 89. The report named three audits and all three were
 real: `aria-hidden-focus` — recharts made the chart surface focusable inside the
@@ -405,14 +438,15 @@ per line. Two lines in `public/` closed it.
 The thresholds in `lighthouserc.json` fail the build below 0.95 on accessibility,
 best practices and SEO, and below **0.7** on performance, all against the median
 of the three runs. That performance floor is deliberately loose, and the reason is
-the table above: the same commit scored 57 and 83 on the same runner. A gate set
-near the median would fail on noise, and a gate that cries wolf gets switched off.
+runner variance across pushes, which has been as wide as 57 on the same commit. A
+gate set near the median would fail on noise, and a gate that cries wolf gets
+switched off.
 0.7 catches a real regression — a doubled bundle, a blocking request — without
 firing at variance.
 
-**Performance is 83 and the reason is not the bundle.** FCP 0.6 s, LCP 1.2 s,
-Speed Index 1.3 s are all fine. What costs the points is CLS 0.32 and 580 ms of
-total blocking time. The CLS is not attributed to elements in the report, and the
+**Performance is 83 and the reason is not the bundle.** FCP 0.8 s, LCP 0.9 s,
+Speed Index 0.8 s and **0 ms of total blocking time** all score 0.96 or better.
+What costs the points is one metric alone: CLS at 0.318, scoring 0.36. The CLS is not attributed to elements in the report, and the
 two candidates — the two Google-hosted serif faces swapping in over a fallback,
 and the loading skeletons being shorter than the content they stand in for — need
 measurement to separate. That is the next pass, and it is a real one: on weight,
@@ -512,8 +546,8 @@ Ask me about any file in here.
    once the month, the account and the date range are in the URL too. A router
    becomes worth its weight at that point, not before.
 2. **Take the performance score apart.** 83, and not because of the bundle — FCP
-   0.6 s, LCP 1.2 s and Speed Index 1.3 s are all fine. It is CLS 0.32 and 580 ms
-   of blocking time, 55 of the score's weight between them. The report does not
+   0.8 s, LCP 0.9 s, Speed Index 0.8 s and 0 ms of blocking time all score 0.96 or
+   better. It is CLS alone, at 0.318 — 25 of the score's weight in one metric. The report does not
    attribute the shift to elements, and the two candidates — two Google-hosted
    serif faces swapping in over a fallback, and loading skeletons shorter than the
    content they stand in for — need measuring apart before either is "fixed".

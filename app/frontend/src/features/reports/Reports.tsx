@@ -17,6 +17,7 @@ import { ReportControls } from './components/ReportControls';
 import { type ReportCurrency } from './constants';
 import { toCategoryRows } from './utils/categoryRows';
 import { describeExcluded } from './utils/excluded';
+import { REPORT_SCOPE } from '@/constants/reports';
 import { useGetCategories } from '@/http/queries/categories/useGetCategories';
 import { useGetMonthlyExpenses } from '@/http/queries/reports/useGetMonthlyExpenses';
 
@@ -30,7 +31,7 @@ export function Reports() {
   const canRollUp = categories !== undefined;
 
   const { data, error, isPending, isError, isFetching, refetch } = useGetMonthlyExpenses(
-    { from: month, to: month, currency },
+    { ...REPORT_SCOPE, from: month, to: month, currency },
     { placeholderData: (previous) => previous },
   );
 
