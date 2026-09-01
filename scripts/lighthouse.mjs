@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { existsSync, readdirSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -10,6 +10,8 @@ const HEALTH = `http://localhost:${String(API_PORT)}/api/health`;
 const PREVIEW = `http://localhost:${String(PREVIEW_PORT)}/`;
 const READY_TIMEOUT_MS = 20_000;
 const POLL_MS = 250;
+const REPORT_DIR = '.lighthouseci';
+const CONFIG = 'lighthouserc.json';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -65,6 +67,82 @@ const untilReady = async (url) => {
     await wait(POLL_MS);
   }
   return false;
+};
+
+const CATEGORIES = [
+  ['performance', 'perf'],
+  ['accessibility', 'a11y'],
+  ['best-practices', 'best practices'],
+  ['seo', 'seo'],
+];
+
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+};
+
+const config = () => {
+  try {
+    return JSON.parse(readFileSync(CONFIG, 'utf8')).ci;
+  } catch {
+    return null;
+  }
+};
+
+const floorFor = (assertions, key) => {
+  const assertion = assertions?.[`categories:${key}`];
+  const minScore = Array.isArray(assertion) ? assertion[1]?.minScore : undefined;
+  return typeof minScore === 'number' ? String(Math.round(minScore * 100)) : '-';
+};
+
+const summarise = () => {
+  let runs;
+  try {
+    runs = JSON.parse(readFileSync(join(REPORT_DIR, 'manifest.json'), 'utf8'));
+  } catch {
+    console.error(`No ${join(REPORT_DIR, 'manifest.json')} to summarise.`);
+    return;
+  }
+
+  const ci = config();
+  const assertions = ci?.assert?.assertions;
+  const audited = ci?.collect?.url?.[0] ?? PREVIEW;
+
+  const columns = CATEGORIES.map(([key, label]) => ({
+    label,
+    floor: floorFor(assertions, key),
+    scores: runs.map((run) => Math.round(run.summary[key] * 100)),
+  }));
+
+  const rows = [
+    `| | ${columns.map((column) => column.label).join(' | ')} |`,
+    `| --- | ${columns.map(() => '---:').join(' | ')} |`,
+    `| median of ${String(runs.length)} | ${columns
+      .map((column) => `**${String(median(column.scores))}**`)
+      .join(' | ')} |`,
+    `| every run | ${columns.map((column) => column.scores.join(' \u00b7 ')).join(' | ')} |`,
+    `| fails below | ${columns.map((column) => column.floor).join(' | ')} |`,
+  ];
+
+  console.log(`\n${rows.join('\n')}\n`);
+
+  const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+  if (summaryFile === undefined || summaryFile === '') return;
+
+  appendFileSync(
+    summaryFile,
+    [
+      '### Lighthouse',
+      '',
+      `Audited \`${audited}\`, desktop preset.`,
+      '',
+      ...rows,
+      '',
+      'The full reports are the `lighthouse` artifact on this run.',
+      '',
+    ].join('\n'),
+  );
 };
 
 const chrome = resolveChrome();
@@ -145,4 +223,6 @@ const lhci = spawn('pnpm', ['exec', 'lhci', 'autorun', ...process.argv.slice(2)]
 
 const [code] = await once(lhci, 'exit');
 stopAll();
+
+summarise();
 process.exit(code ?? 1);
